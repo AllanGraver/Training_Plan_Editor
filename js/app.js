@@ -1,7 +1,7 @@
 let plan = {
   plan_name: "Ny træningsplan",
   duration_weeks: 12,
-  race_distance_km: 21.1,
+  race_distance_km: null,
   sessions: []
 };
 
