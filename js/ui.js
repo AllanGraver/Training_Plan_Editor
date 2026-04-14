@@ -1,3 +1,6 @@
+/* ---------------------------------------------------------
+   RENDER UGER (venstre panel)
+--------------------------------------------------------- */
 function renderWeeks() {
   const weekList = document.getElementById("weekList");
   weekList.innerHTML = "";
@@ -6,16 +9,21 @@ function renderWeeks() {
     const div = document.createElement("div");
     div.className = "plan-item";
     div.textContent = "Uge " + w;
+
     div.onclick = () => {
       selectedWeek = w;
       selectedSessionIndex = null;
       renderMain();
       renderEditor();
     };
+
     weekList.appendChild(div);
   }
 }
 
+/* ---------------------------------------------------------
+   RENDER MIDTERPANELET (ugevisning + pas)
+--------------------------------------------------------- */
 function renderMain() {
   const main = document.getElementById("main");
   main.innerHTML = "";
@@ -27,7 +35,7 @@ function renderMain() {
 
   const sessions = plan.sessions.filter(s => s.week === selectedWeek);
 
-  // Hvis ingen pas → vis info
+  /* Hvis ingen pas i ugen */
   if (sessions.length === 0) {
     const empty = document.createElement("div");
     empty.style.padding = "10px 0";
@@ -36,7 +44,9 @@ function renderMain() {
     weekCard.appendChild(empty);
   }
 
-  // Vis alle pas
+  /* ---------------------------------------------------------
+     VIS PAS I UGEN
+  --------------------------------------------------------- */
   sessions.forEach((s, i) => {
     const row = document.createElement("div");
     row.className = "session-row";
@@ -44,8 +54,11 @@ function renderMain() {
     row.innerHTML = `
       <div>
         <div class="session-title">${s.title}</div>
-        <div class="session-meta">${s.distance_km ?? "-"} km • ${s.duration_min ?? "-"} min</div>
+        <div class="session-meta">
+          ${s.distance_km ?? "-"} km • ${s.duration_min ?? "-"} min
+        </div>
       </div>
+
       <div>
         <div class="edit-btn" onclick="editSession(${i})">Rediger</div>
         <div class="edit-btn" style="background:#d9534f;margin-top:5px"
@@ -56,7 +69,9 @@ function renderMain() {
     weekCard.appendChild(row);
   });
 
-  // --- TILFØJ PAS KNAP ---
+  /* ---------------------------------------------------------
+     TILFØJ PAS
+  --------------------------------------------------------- */
   const addBtn = document.createElement("button");
   addBtn.textContent = "+ Tilføj pas";
   addBtn.style.marginTop = "15px";
@@ -67,6 +82,9 @@ function renderMain() {
   main.appendChild(weekCard);
 }
 
+/* ---------------------------------------------------------
+   SLET PAS
+--------------------------------------------------------- */
 function deleteSession(index) {
   if (!confirm("Vil du slette dette pas?")) return;
 
