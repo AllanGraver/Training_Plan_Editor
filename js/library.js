@@ -21,6 +21,30 @@ function renderLibrary() {
   });
 }
 
+function newPlan() {
+  const name = prompt("Navn på den nye plan:");
+  if (!name) return;
+
+  plan = {
+    plan_name: name,
+    duration_weeks: 12,
+    race_distance_km: null,
+    sessions: []
+  };
+
+  const lib = loadLibrary();
+  lib[name] = plan;
+  saveLibrary(lib);
+
+  selectedWeek = 1;
+  selectedSessionIndex = null;
+
+  renderLibrary();
+  renderWeeks();
+  renderMain();
+  renderEditor();
+}
+
 function savePlan() {
   const name = plan.plan_name || prompt("Navn på planen:");
   if (!name) return;
