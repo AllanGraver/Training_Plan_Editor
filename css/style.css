@@ -1,0 +1,129 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  display: flex;
+  height: 100vh;
+  background: #f7f7f7;
+  overflow: hidden;
+}
+
+/* Sidebar */
+#sidebar {
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid #ddd;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+#sidebar h2 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #fc4c02;
+}
+
+.plan-item {
+  padding: 10px;
+  margin-bottom: 6px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.plan-item:hover {
+  background: #fc4c02;
+  color: white;
+  border-color: #fc4c02;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 6px;
+  background: #fc4c02;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #d84302;
+}
+
+/* Main */
+#main {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.week-card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.session-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.session-title {
+  font-weight: bold;
+}
+
+.session-meta {
+  color: #555;
+}
+
+.edit-btn {
+  background: #0078d4;
+  padding: 6px 10px;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Editor panel */
+#editorPanel {
+  width: 380px;
+  background: #ffffff;
+  border-left: 1px solid #ddd;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+#jsonPreview {
+  background: #1e1e1e;
+  color: #dcdcdc;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 15px;
+  height: 200px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 12px;
+}
