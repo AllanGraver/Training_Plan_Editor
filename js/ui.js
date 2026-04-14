@@ -36,11 +36,28 @@ function renderMain() {
         <div class="session-title">${s.title}</div>
         <div class="session-meta">${s.distance_km ?? "-"} km • ${s.duration_min ?? "-"} min</div>
       </div>
-      <div class="edit-btn" onclick="editSession(${i})">Rediger</div>
+      <div>
+        <div class="edit-btn" onclick="editSession(${i})">Rediger</div>
+        <div class="edit-btn" style="background:#d9534f;margin-top:5px"
+             onclick="deleteSession(${i})">Slet</div>
+      </div>
     `;
 
     weekCard.appendChild(row);
   });
 
   main.appendChild(weekCard);
+}
+
+function deleteSession(index) {
+  if (!confirm("Vil du slette dette pas?")) return;
+
+  const sessions = plan.sessions.filter(s => s.week === selectedWeek);
+  const globalIndex = plan.sessions.indexOf(sessions[index]);
+
+  plan.sessions.splice(globalIndex, 1);
+
+  selectedSessionIndex = null;
+  renderMain();
+  renderEditor();
 }
