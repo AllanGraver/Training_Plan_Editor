@@ -438,3 +438,33 @@ textarea:focus {
 .toggle-labels .active {
   color: #fc4c02;
 }
+/* =====================================================
+   THEME TOGGLE BUTTON (ØVERST HØJRE)
+   ===================================================== */
+
+.theme-toggle {
+  margin-left: auto;
+  padding: 6px 12px;
+  background: #ffffff22;
+  color: #fff;
+  border: 1px solid #ffffff55;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.theme-toggle:hover {
+  background: #ffffff44;
+}
+
+/* Light mode styling */
+body.light-mode .theme-toggle {
+  background: #fc4c02;
+  color: #fff;
+  border-color: #fc4c02;
+}
+
+body.light-mode .theme-toggle:hover {
+  background: #d84302;
+}
