@@ -28,12 +28,11 @@ body {
 
 .app-header {
   display: flex;
-  justify-content: space-between; /* Titel venstre, toggle højre */
+  justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  background: #fc4c02;        /* STRAVA ORANGE */
-  color: #ffffff;             /* HVID TEKST */
-  border-bottom: none;
+  background: #fc4c02;
+  color: #ffffff;
   box-shadow: 0 2px 4px rgba(0,0,0,0.25);
 }
 
@@ -45,7 +44,7 @@ body {
 }
 
 /* =====================================================
-   THEME TOGGLE BUTTON (ØVERST HØJRE)
+   THEME TOGGLE BUTTON
    ===================================================== */
 
 .theme-toggle {
@@ -65,7 +64,7 @@ body {
 }
 
 /* =====================================================
-   SIDEBAR (venstre panel)
+   SIDEBAR
    ===================================================== */
 
 #sidebar {
@@ -78,9 +77,18 @@ body {
   box-shadow: 0 0 6px rgba(0,0,0,0.05);
 }
 
-.plan-item {
-  padding: 6px 8px;
+/* Plan-række med skraldespand */
+.plan-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 4px;
+}
+
+/* Plan-knap */
+.plan-item {
+  flex: 1;
+  padding: 6px 8px;
   font-size: 14px;
   background: #fafafa;
   border: 1px solid #ddd;
@@ -100,6 +108,22 @@ body {
   background: #ffe9dd;
 }
 
+/* Skraldespands-ikon */
+.delete-plan {
+  cursor: pointer;
+  color: #888;
+  padding: 4px;
+  border-radius: 4px;
+  margin-left: 6px;
+  transition: 0.2s;
+}
+
+.delete-plan:hover {
+  color: #fc4c02;
+  background: #ffffff22;
+}
+
+/* Sidebar-knapper */
 #sidebar button {
   padding: 6px 8px;
   font-size: 14px;
@@ -145,7 +169,7 @@ body {
 }
 
 /* =====================================================
-   MAIN (MIDTERSEKTION)
+   MAIN
    ===================================================== */
 
 #main {
@@ -181,7 +205,7 @@ body {
 }
 
 /* =====================================================
-   EDITOR PANEL (HØJRE SIDE)
+   EDITOR PANEL
    ===================================================== */
 
 #editorPanel {
@@ -273,12 +297,6 @@ body.dark-mode #main {
   color: #fff;
 }
 
-body.dark-mode .panel-header {
-  background: #1a1a1a;
-  color: #fff;
-  border-left: 4px solid #fc4c02;
-}
-
 body.dark-mode .plan-item {
   background: #1a1a1a;
   border-color: #333;
@@ -293,6 +311,15 @@ body.dark-mode .plan-item:hover {
 body.dark-mode .plan-item.selected {
   background: #2a2a2a;
   border: 2px solid #fff !important;
+}
+
+body.dark-mode .delete-plan {
+  color: #aaa;
+}
+
+body.dark-mode .delete-plan:hover {
+  color: #fc4c02;
+  background: #333;
 }
 
 body.dark-mode .week-button {
