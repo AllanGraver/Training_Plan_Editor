@@ -234,19 +234,31 @@ function renderDurationFields(step, index) {
       <option value="distance" ${step.durationType === "distance" ? "selected" : ""}>Distance</option>
     </select>
 
-    ${step.durationType === "time"
-      ? `
+    ${
+      step.durationType === "time"
+        ? `
         <label>Varighed</label>
         <div class="duration-row">
-          <input type="number" min="0" value="${step.hours || 0}"
-                 onchange="updateStep(${index}, 'hours', parseInt(this.value))"> t
-          <input type="number" min="0" max="59" value="${step.minutes || 0}"
-                 onchange="updateStep(${index}, 'minutes', parseInt(this.value))"> m
-          <input type="number" min="0" max="59" value="${step.seconds || 0}"
-                 onchange="updateStep(${index}, 'seconds', parseInt(this.value))"> s
+          <div class="duration-field">
+            <input type="number" min="0" value="${step.hours || 0}"
+                   onchange="updateStep(${index}, 'hours', parseInt(this.value))">
+            <span>t</span>
+          </div>
+
+          <div class="duration-field">
+            <input type="number" min="0" max="59" value="${step.minutes || 0}"
+                   onchange="updateStep(${index}, 'minutes', parseInt(this.value))">
+            <span>m</span>
+          </div>
+
+          <div class="duration-field">
+            <input type="number" min="0" max="59" value="${step.seconds || 0}"
+                   onchange="updateStep(${index}, 'seconds', parseInt(this.value))">
+            <span>s</span>
+          </div>
         </div>
       `
-      : `
+        : `
         <label>Distance</label>
         <input type="number" step="0.01" value="${step.distance || 1}"
                onchange="updateStep(${index}, 'distance', parseFloat(this.value))"> km
@@ -254,7 +266,6 @@ function renderDurationFields(step, index) {
     }
   `;
 }
-
 /* =========================================================
    INTENSITETSFELT
    ========================================================= */
