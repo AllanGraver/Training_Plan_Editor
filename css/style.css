@@ -331,3 +331,110 @@ textarea:focus {
 .toggle-labels .active {
   color: #fc4c02;
 }
+/* =====================================================
+   DARK MODE
+   ===================================================== */
+
+body {
+  background: #000;
+  color: #fff;
+}
+
+/* Paneler */
+#sidebar,
+#editorPanel,
+#main {
+  background: #111;
+  color: #fff;
+}
+
+/* Panel headers */
+.panel-header {
+  background: #1a1a1a;
+  color: #fff;
+  border-left: 4px solid #fc4c02;
+  box-shadow: 0 1px 2px rgba(255,255,255,0.05);
+}
+
+/* Planliste */
+.plan-item {
+  background: #1a1a1a;
+  border-color: #333;
+  color: #fff;
+}
+
+.plan-item:hover {
+  background: #fc4c02;
+  color: #fff;
+}
+
+.plan-item.selected {
+  background: #2a2a2a;
+  border: 2px solid #fff !important;
+}
+
+/* Ugeknapper */
+.week-button {
+  background: #1a1a1a;
+  border-color: #333;
+  color: #fff;
+}
+
+.week-button:hover {
+  background: #fc4c02;
+  color: #fff;
+}
+
+.week-button.active {
+  background: #fc4c02;
+  border: 2px solid #fff !important;
+}
+
+/* Step cards */
+.step-card {
+  background: #1a1a1a;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(255,255,255,0.05);
+}
+
+.step-card:hover {
+  background: #2a2a2a;
+}
+
+/* Inputfelter */
+input, select, textarea {
+  background: #222;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #fc4c02;
+  box-shadow: 0 0 0 2px rgba(252,76,2,0.35);
+}
+
+/* Segment editor */
+.segment-card {
+  background: #1a1a1a;
+  border-color: #333;
+  color: #fff;
+}
+
+/* Toggle */
+.toggle-track {
+  background: #444;
+}
+
+.toggle-thumb {
+  background: #fc4c02;
+}
+
+.toggle-labels span {
+  color: #aaa;
+}
+
+.toggle-labels .active {
+  color: #fc4c02;
+}
