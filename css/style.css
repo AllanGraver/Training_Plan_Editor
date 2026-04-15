@@ -10,7 +10,7 @@ body {
   flex-direction: column;
 
   height: 100vh;
-  background: #f7f7f7;
+  background: #f2f2f2;
   overflow: hidden;
 }
 
@@ -22,15 +22,21 @@ body {
 }
 
 /* =====================================================
-   TOP HEADER (kun titel)
+   TOP HEADER (ren og rolig)
    ===================================================== */
 
 .app-header {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background: #ffffff;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* Fjern knapper i topbaren */
+.app-header button,
+.app-header .menu-item {
+  display: none !important;
 }
 
 .app-title {
@@ -49,8 +55,8 @@ body {
   padding: 10px 12px;
   border-left: 4px solid #fc4c02;
   background: #ffffff;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  margin-bottom: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 
 /* =====================================================
@@ -61,10 +67,10 @@ body {
   width: 260px;
   flex: 0 0 260px;
   background: #ffffff;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid #ccc;
   padding: 15px;
   overflow-y: auto;
-  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  box-shadow: 0 0 6px rgba(0,0,0,0.05);
 }
 
 /* Kompakt planliste */
@@ -147,6 +153,7 @@ body {
   padding: 15px;
   overflow-y: auto;
   min-width: 0;
+  background: #f7f7f7;
 }
 
 /* Step cards (Garmin-style) */
@@ -179,32 +186,46 @@ body {
    ===================================================== */
 
 #editorPanel {
-  width: 380px;
-  flex: 0 0 380px;
+  width: 320px;
+  flex: 0 0 320px;
   background: #ffffff;
-  border-left: 1px solid #ddd;
-  padding: 15px;
+  border-left: 1px solid #ccc;
+  padding: 12px;
   overflow-y: auto;
-  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  box-shadow: 0 0 6px rgba(0,0,0,0.05);
 }
 
 #editorPanel h3 {
-  margin-top: 20px;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  font-size: 15px;
   color: #fc4c02;
 }
 
 label {
   display: block;
-  margin-top: 12px;
+  margin-top: 8px;
+  font-size: 14px;
   font-weight: bold;
 }
 
+/* Tydeligere inputfelter */
 input, select, textarea {
   width: 100%;
   padding: 8px;
   margin-top: 4px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  background: #fff;
+  border: 1px solid #bbb;
+  transition: 0.15s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #fc4c02;
+  box-shadow: 0 0 0 2px rgba(252,76,2,0.25);
+  outline: none;
 }
 
 /* =====================================================
