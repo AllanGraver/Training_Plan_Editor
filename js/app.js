@@ -14,6 +14,24 @@ let plan = {
 let selectedWeek = 1;
 let selectedSessionIndex = null;
 
+/* =====================================================
+   DARK / LIGHT MODE TOGGLE
+   ===================================================== */
+
+function applyTheme() {
+  const isLight = document.body.classList.contains("light-mode");
+  const btn = document.getElementById("themeToggle");
+  btn.textContent = isLight ? "Dark mode" : "Light mode";
+}
+
+document.getElementById("themeToggle").onclick = () => {
+  document.body.classList.toggle("light-mode");
+  applyTheme();
+};
+
+// Kør ved load
+applyTheme();
+
 /* =========================================================
    LIBRARY LOAD/SAVE
    ========================================================= */
