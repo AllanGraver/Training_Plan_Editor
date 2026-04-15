@@ -21,16 +21,19 @@
     </div>
 
     <nav class="menu-center" aria-label="Primær navigation">
+      <!-- NOTE: focus() works reliably with your "panel scroll" layout -->
       <button class="menu-item" type="button"
-        onclick="document.getElementById('sidebar')?.scrollIntoView({behavior:'smooth', block:'start'});">
+        onclick="document.getElementById('sidebar')?.focus()">
         Planer
       </button>
+
       <button class="menu-item" type="button"
-        onclick="document.getElementById('main')?.scrollIntoView({behavior:'smooth', block:'start'});">
+        onclick="document.getElementById('main')?.focus()">
         Oversigt
       </button>
+
       <button class="menu-item" type="button"
-        onclick="document.getElementById('editorPanel')?.scrollIntoView({behavior:'smooth', block:'start'});">
+        onclick="document.getElementById('editorPanel')?.focus()">
         Rediger pas
       </button>
     </nav>
@@ -39,8 +42,8 @@
       <button class="menu-item" type="button" onclick="newPlan()">+ Ny</button>
       <button class="menu-item" type="button" onclick="savePlan()">Gem</button>
       <button class="menu-item" type="button" onclick="savePlanAs()">Gem som</button>
-      <button class="menu-item" type="button" onclick="exportPlan()">Export</button>
-      <button class="menu-item" type="button" onclick="importPlan()">Import</button>
+      <button class="menu-item" type="button" onclick="exportPlan()">Eksportér</button>
+      <button class="menu-item" type="button" onclick="importPlan()">Importér</button>
     </div>
   </header>
 
@@ -49,7 +52,8 @@
        ===================================================== -->
   <div class="app-shell">
 
-    <div id="sidebar">
+    <!-- tabindex makes focus() possible (no visual change) -->
+    <div id="sidebar" tabindex="-1">
       <h2>Planer</h2>
 
       <button onclick="newPlan()">+ Ny plan</button>
@@ -68,9 +72,9 @@
       <button onclick="addSession()">+ Tilføj pas</button>
     </div>
 
-    <div id="main"></div>
+    <div id="main" tabindex="-1"></div>
 
-    <div id="editorPanel">
+    <div id="editorPanel" tabindex="-1">
       <h2>Rediger pas</h2>
       <div id="sessionEditor">Vælg et pas…</div>
 
@@ -88,4 +92,3 @@
 
 </body>
 </html>
-``
