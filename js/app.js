@@ -15,7 +15,7 @@ let selectedWeek = 1;
 let selectedSessionIndex = null;
 
 /* =========================================================
-   LOAD LIBRARY (fra localStorage)
+   LIBRARY LOAD/SAVE
    ========================================================= */
 
 function loadLibrary() {
@@ -55,8 +55,15 @@ function renderLibrary() {
 
     item.onclick = () => {
       plan = JSON.parse(JSON.stringify(lib[name]));
+
+      // ⭐ Sikr at alle sessions har steps-array
+      plan.sessions.forEach(s => {
+        if (!Array.isArray(s.steps)) s.steps = [];
+      });
+
       selectedWeek = 1;
       selectedSessionIndex = null;
+
       renderWeeks();
       renderMain();
       renderEditor();
@@ -67,7 +74,7 @@ function renderLibrary() {
 }
 
 /* =========================================================
-   UGE-LISTE (venstre panel)
+   UGE-LISTE
    ========================================================= */
 
 function renderWeeks() {
@@ -99,7 +106,7 @@ function renderWeeks() {
 }
 
 /* =========================================================
-   SESSIONS FOR WEEK
+   SESSION-HÅNDTERING
    ========================================================= */
 
 function getSessionsForWeek(week) {
@@ -125,7 +132,7 @@ function renderSessionsForWeek() {
 }
 
 /* =========================================================
-   ADD SESSION
+   TILFØJ PAS
    ========================================================= */
 
 function addSession() {
@@ -159,10 +166,15 @@ function initApp() {
   const lib = loadLibrary();
   const names = Object.keys(lib);
 
-  // Hvis der findes planer i biblioteket → vælg første
+  // Hvis der findes planer → vælg første
   if (names.length > 0) {
     plan = JSON.parse(JSON.stringify(lib[names[0]]));
   }
+
+  // ⭐ Sikr at alle sessions har steps-array
+  plan.sessions.forEach(s => {
+    if (!Array.isArray(s.steps)) s.steps = [];
+  });
 
   selectedWeek = 1;
   selectedSessionIndex = null;
