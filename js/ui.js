@@ -1,22 +1,51 @@
 "use strict";
 
 /* =========================================================
-   UI STATE
+   UI.JS – Træningsplan Editor UI
+   ---------------------------------------------------------
+   Denne fil forventer at app.js definerer:
+     - let plan = { duration_weeks, sessions: [...] }
+     - let selectedWeek = 1;
+     - let selectedSessionIndex = null;
+
+   VIGTIGT:
+   selectedSessionIndex = index i sessions for valgt uge (FILTERED index)
+   (så autoCalc() / editSegments() fortsat virker som før)
    ========================================================= */
-let selectedWeek = 1;
 
-// VIGTIGT: selectedSessionIndex er GLOBAL index i plan.sessions
-let selectedSessionIndex = null;
+/* ---------------------------------------------------------
+   SAFE HELPERS
+--------------------------------------------------------- */
+function ensurePlan() {
+  if (typeof window.plan !== "object" || window.plan === null) {
+    window.plan = {
+      plan_name: "Ny træningsplan",
+      duration_weeks: 12,
+      race_distance_km: null,
+      sessions: []
+    };
+  }
+  if (!Array.isArray(plan.sessions)) plan.sessions = [];
+  if (!plan.duration_weeks) plan.duration_weeks = 12;
 
-// JSON preview toggle state (persist i runtime)
-let showJsonPreview = false;
+  if (typeof window.selectedWeek !== "number") window.selectedWeek = 1;
+  if (window.selectedWeek < 1) window.selectedWeek = 1;
+  if (window.selectedWeek > plan.duration_weeks) window.selectedWeek = plan.duration_weeks;
 
+  if (typeof window.selectedSessionIndex !== "number" && window.selectedSessionIndex !== null) {
+    window.selectedSessionIndex = null;
+  }
+}
 
-/* =========================================================
-   HELPERS
-   ========================================================= */
-function safeText(v, fallback = "") {
-  return (v === undefined || v === null) ? fallback : String(v);
+function getWeekSessions() {
+  // sessions for current week (filtered)
+  return plan.sessions.filter(s => s.week === selectedWeek);
+}
+
+function getSelectedSession() {
+  if (selectedSessionIndex === null) return null;
+  const sessions = getWeekSessions();
+  return sessions[selectedSessionIndex] || null;
 }
 
 function parseFirstNumber(str) {
@@ -26,116 +55,77 @@ function parseFirstNumber(str) {
   return m ? Number(m[1]) : null;
 }
 
-function ensurePlanShape() {
-  // Gør det robust hvis plan ikke er sat korrekt endnu
-  if (typeof window.plan !== "object" || window.plan === null) {
-    window.plan = { duration_weeks: 12, sessions: [] };
-  }
-  if (!Array.isArray(plan.sessions)) plan.sessions = [];
-  if (!plan.duration_weeks) plan.duration_weeks = 12;
-
-  // Sikrer at selectedWeek er indenfor range
-  const maxWeeks = Number(plan.duration_weeks) || 1;
-  if (selectedWeek < 1) selectedWeek = 1;
-  if (selectedWeek > maxWeeks) selectedWeek = maxWeeks;
+function dayNameFromNumber(n) {
+  const map = {
+    1: "Mandag",
+    2: "Tirsdag",
+    3: "Onsdag",
+    4: "Torsdag",
+    5: "Fredag",
+    6: "Lørdag",
+    7: "Søndag"
+  };
+  return map[n] || "Mandag";
 }
 
-function getWeekSessionRefs() {
-  // Returnerer sessioner i valgt uge som: [{ s, globalIndex }]
-  const refs = [];
-  for (let gi = 0; gi < plan.sessions.length; gi++) {
-    const s = plan.sessions[gi];
-    if (s && s.week === selectedWeek) {
-      refs.push({ s, globalIndex: gi });
-    }
-  }
-  return refs;
+function clampDay(n) {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return 1;
+  return Math.min(7, Math.max(1, x));
 }
 
-function getSelectedSession() {
-  if (selectedSessionIndex == null) return null;
-  return plan.sessions[selectedSessionIndex] || null;
-}
+/* ---------------------------------------------------------
+   JSON PREVIEW TOGGLE (Advanced)
+--------------------------------------------------------- */
+let showJsonPreview = true; // default: som nu (synlig). Sæt til false hvis du vil skjule som standard.
 
 function setJsonVisible(visible) {
   showJsonPreview = !!visible;
 
-  // I din HTML ligger JSON som:
-  // <h3>JSON</h3>
-  // <div id="jsonPreview"></div>
-  // Vi skjuler/viser kun preview-div'en + forsøger at skjule overskriften hvis den er lige før.
   const json = document.getElementById("jsonPreview");
   if (!json) return;
 
   json.style.display = showJsonPreview ? "block" : "none";
 
-  // Skjul/vis evt. <h3> elementet lige før jsonPreview
+  // skjul/vis evt. "JSON" overskrift (h3) hvis den står lige før jsonPreview
   const prev = json.previousElementSibling;
   if (prev && prev.tagName === "H3" && prev.textContent.trim().toLowerCase() === "json") {
     prev.style.display = showJsonPreview ? "block" : "none";
   }
 }
 
-function updateJsonPreview(session) {
-  const json = document.getElementById("jsonPreview");
-  if (!json) return;
-
-  if (!session) {
-    json.textContent = "";
-    return;
-  }
-  json.textContent = JSON.stringify(session, null, 2);
-}
-
-function rerenderAll() {
-  renderWeeks();
-  renderMain();
-  renderEditor();
-}
-
-
 /* =========================================================
    RENDER UGER (venstre panel)
 --------------------------------------------------------- */
 function renderWeeks() {
-  ensurePlanShape();
+  ensurePlan();
 
   const weekList = document.getElementById("weekList");
   if (!weekList) return;
 
   weekList.innerHTML = "";
 
-  const maxWeeks = Number(plan.duration_weeks) || 1;
-
-  for (let w = 1; w <= maxWeeks; w++) {
+  for (let w = 1; w <= plan.duration_weeks; w++) {
     const div = document.createElement("div");
     div.className = "plan-item";
     div.textContent = "Uge " + w;
-
-    // (valgfrit) marker valgt uge visuelt via inline (ingen farver ændres i css)
-    if (w === selectedWeek) {
-      div.style.borderColor = "#fc4c02";
-    }
 
     div.onclick = () => {
       selectedWeek = w;
       selectedSessionIndex = null;
       renderMain();
       renderEditor();
-      // Fokus på main for bedre flow (valgfrit)
-      document.getElementById("main")?.focus?.();
     };
 
     weekList.appendChild(div);
   }
 }
 
-
 /* =========================================================
    RENDER MIDTERPANELET (ugevisning + pas)
 --------------------------------------------------------- */
 function renderMain() {
-  ensurePlanShape();
+  ensurePlan();
 
   const main = document.getElementById("main");
   if (!main) return;
@@ -147,10 +137,10 @@ function renderMain() {
 
   weekCard.innerHTML = `<h2>Uge ${selectedWeek}</h2>`;
 
-  const refs = getWeekSessionRefs();
+  const sessions = getWeekSessions();
 
   /* Hvis ingen pas i ugen */
-  if (refs.length === 0) {
+  if (sessions.length === 0) {
     const empty = document.createElement("div");
     empty.style.padding = "10px 0";
     empty.style.color = "#777";
@@ -158,36 +148,34 @@ function renderMain() {
     weekCard.appendChild(empty);
   }
 
-  /* VIS PAS I UGEN */
-  refs.forEach(({ s, globalIndex }) => {
+  /* ---------------------------------------------------------
+     VIS PAS I UGEN
+  --------------------------------------------------------- */
+  sessions.forEach((s, i) => {
     const row = document.createElement("div");
     row.className = "session-row";
 
     row.innerHTML = `
       <div>
-        <div class="session-title">${safeText(s.title, "Nyt pas")}</div>
+        <div class="session-title">${s.title ?? "Nyt pas"}</div>
         <div class="session-meta">
           ${s.distance_km ?? "-"} km • ${s.duration_min ?? "-"} min
         </div>
       </div>
 
       <div>
-        <div class="edit-btn" data-action="edit" data-idx="${globalIndex}te" data-idx="${globalIndex}"
-             style="background:#d9534f;margin-top:5px
-  weekCard.addEventListener("click", (e) => {
-    const btn = e.target.closest(".edit-btn");
-    if (!btn) return;
+        <div class="edit-btn" onclick="editSession(${i})">Rediger</div>
+        <div class="edit-btn" style="background:#d9534f;margin-top:5px"
+             onclick="deleteSession(${i})">Slet</div>
+      </div>
+    `;
 
-    const idx = Number(btn.getAttribute("data-idx"));
-    const action = btn.getAttribute("data-action");
-
-    if (Number.isNaN(idx)) return;
-
-    if (action === "edit") editSession(idx);
-    if (action === "delete") deleteSession(idx);
+    weekCard.appendChild(row);
   });
 
-  /* TILFØJ PAS */
+  /* ---------------------------------------------------------
+     TILFØJ PAS
+  --------------------------------------------------------- */
   const addBtn = document.createElement("button");
   addBtn.textContent = "+ Tilføj pas";
   addBtn.style.marginTop = "15px";
@@ -198,200 +186,174 @@ function renderMain() {
   main.appendChild(weekCard);
 }
 
-
 /* =========================================================
-   EDIT PAS (global index)
-========================================================= */
-function editSession(globalIndex) {
-  selectedSessionIndex = globalIndex;
-  renderEditor();
-  document.getElementById("editorPanel")?.focus?.();
-}
+   SLET PAS
+   (beholder din logik – men lidt mere robust)
+--------------------------------------------------------- */
+function deleteSession(index) {
+  ensurePlan();
 
-
-/* =========================================================
-   TILFØJ PAS
-========================================================= */
-function addSession() {
-  ensurePlanShape();
-
-  const newSession = {
-    week: selectedWeek,
-    title: "Nyt pas",
-    day: "Mandag",
-    note: "",
-    distance_km: null,
-    duration_min: null
-    // segments: [] // tilføj hvis du bruger segments i din app
-  };
-
-  plan.sessions.push(newSession);
-
-  selectedSessionIndex = plan.sessions.length - 1;
-
-  renderMain();
-  renderEditor();
-  document.getElementById("editorPanel")?.focus?.();
-}
-
-
-/* =========================================================
-   SLET PAS (global index)
-========================================================= */
-function deleteSession(globalIndex) {
   if (!confirm("Vil du slette dette pas?")) return;
+
+  const sessions = getWeekSessions();
+  const globalIndex = plan.sessions.indexOf(sessions[index]);
+
+  if (globalIndex === -1) return;
 
   plan.sessions.splice(globalIndex, 1);
 
-  // Juster selection stabilt
-  if (selectedSessionIndex === globalIndex) {
-    selectedSessionIndex = null;
-  } else if (selectedSessionIndex != null && selectedSessionIndex > globalIndex) {
-    selectedSessionIndex--;
+  // Justér selectedSessionIndex på en fornuftig måde:
+  // Hvis man sletter et pas før det valgte index, så rykker index 1 ned.
+  if (selectedSessionIndex !== null) {
+    if (index === selectedSessionIndex) {
+      selectedSessionIndex = null;
+    } else if (index < selectedSessionIndex) {
+      selectedSessionIndex--;
+    }
   }
 
   renderMain();
   renderEditor();
 }
 
+/* =========================================================
+   REDIGER PAS (beholder din semantik: filtered index)
+--------------------------------------------------------- */
+function editSession(index) {
+  selectedSessionIndex = index;
+  renderEditor();
+}
 
 /* =========================================================
    RENDER EDITOR (højre panel)
-   - Tid/Distance varighedstype (kun de to)
-   - Gemmer i distance_km eller duration_min (rydder den anden)
-   - Vis/Skjul JSON (advanced)
-========================================================= */
+   - Tilføjer Varighedstype (Tid/Distance)
+   - Ét input "Varighed" gemmer til distance_km eller duration_min
+   - Avanceret: Vis/Skjul JSON
+--------------------------------------------------------- */
 function renderEditor() {
-  ensurePlanShape();
+  ensurePlan();
 
-  const editor = document.getElementById("sessionEditor");
-  if (!editor) return;
+  const editorDiv = document.getElementById("sessionEditor");
+  const previewDiv = document.getElementById("jsonPreview");
 
-  const session = getSelectedSession();
+  if (!editorDiv || !previewDiv) return;
 
-  // Ingen valgt session
-  if (!session) {
-    editor.innerHTML = "Vælg et pas…";
-    updateJsonPreview(null);
-    // Skjul JSON som default hvis man vil
+  if (selectedSessionIndex === null) {
+    editorDiv.innerHTML = "Vælg et pas…";
+    previewDiv.innerHTML = "";
     setJsonVisible(showJsonPreview);
     return;
   }
 
-  // Byg editor UI
-  editor.innerHTML = `
+  const sessions = getWeekSessions();
+  const session = sessions[selectedSessionIndex];
+
+  if (!session) {
+    // hvis index er out of range (fx efter slet), nulstil
+    selectedSessionIndex = null;
+    editorDiv.innerHTML = "Vælg et pas…";
+    previewDiv.innerHTML = "";
+    setJsonVisible(showJsonPreview);
+    return;
+  }
+
+  // Bestem duration type ud fra data
+  // Default: distance (som din reference)
+  const inferredType = (session.duration_min != null && session.distance_km == null) ? "time" : "distance";
+  const durationValue =
+    inferredType === "time"
+      ? (session.duration_min ?? "")
+      : (session.distance_km ?? "");
+
+  editorDiv.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">
-      <div style="font-weight:800;">${safeText(session.title, "Rediger pas")}</div>
-      <button type="button" id="btnToggleJson" style="width:auto;margin-top:0;padding:6px 10px;border-radius:6px;">
+      <div style="font-weight:800;">Rediger pas</div>
+      <button type="button" id="toggleJsonBtn" style="width:auto;margin-top:0;padding:6px 10px;border-radius:6px;">
         ${showJsonPreview ? "Skjul JSON" : "Vis JSON"}
       </button>
     </div>
 
-    <div style="margin-top:16px;">
-      <div style="margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#666;">
+    <div style="margin-top:14px;">
+      <div style="margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#666;">
         Pasoplysninger
       </div>
 
-      <label for="titleInput">Titel</label>
-      <input id="titleInput" type="text" />
+      <label>Titel</label>
+      <input id="title" value="${session.title ?? "Nyt pas"}" />
 
-      <label for="daySelect">Dag</label>
-      <select id="daySelect">
-        <option>Mandag</option>
-        <option>Tirsdag</option>
-        <option>Onsdag</option>
-        <option>Torsdag</option>
-        <option>Fredag</option>
-        <option>Lørdag</option>
-        <option>Søndag</option>
+      <label>Dag</label>
+      <select id="day">
+        <option value="1">Mandag</option>
+        <option value="2">Tirsdag</option>
+        <option value="3">Onsdag</option>
+        <option value="4">Torsdag</option>
+        <option value="5">Fredag</option>
+        <option value="6">Lørdag</option>
+        <option value="7">Søndag</option>
       </select>
 
-      <label for="noteInput">Note</label>
-      <textarea id="noteInput" rows="3"></textarea>
+      <label>Note</label>
+      <textarea id="note">${session.note ?? ""}</textarea>
     </div>
 
     <div style="margin-top:18px;">
-      <div style="margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#666;">
+      <div style="margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#666;">
         Varighed
       </div>
 
-      <label for="durationType">Varighedstype</label>
+      <label>Varighedstype</label>
       <select id="durationType">
         <option value="time">Tid</option>
         <option value="distance">Distance</option>
       </select>
 
-      <label for="durationValue" id="durationValueLabel">Varighed</label>
-      <input id="durationValue" type="text" />
+      <label id="durationValueLabel">Varighed</label>
+      <input id="durationValue" value="${durationValue}" />
       <small id="durationHelp" style="display:block;margin-top:6px;font-size:12px;opacity:.75;"></small>
     </div>
 
     <div style="margin-top:18px;">
-      <div style="margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#666;">
+      <div style="margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#666;">
         Handlinger
       </div>
 
-      <button type="button" id="btnEditSegments">Rediger segmenter</button>
-      <button type="button" id="btnCalcKmMin">Beregn km/min</button>
-      <button type="button" id="btnSaveSession">Gem</button>
+      <button type="button" onclick="editSegments()">Rediger segmenter</button>
+      <button type="button" onclick="autoCalc()">Beregn km/min</button>
+      <button type="button" onclick="saveSession()">Gem</button>
     </div>
   `;
 
-  // Field refs
-  const titleInput = document.getElementById("titleInput");
-  const daySelect = document.getElementById("daySelect");
-  const noteInput = document.getElementById("noteInput");
+  // Init day
+  document.getElementById("day").value = String(clampDay(session.day));
 
-  const durationType = document.getElementById("durationType");
-  const durationValue = document.getElementById("durationValue");
-  const durationValueLabel = document.getElementById("durationValueLabel");
-  const durationHelp = document.getElementById("durationHelp");
+  // Init durationType + help/placeholder
+  const durationTypeEl = document.getElementById("durationType");
+  const durationValueEl = document.getElementById("durationValue");
+  const durationHelpEl = document.getElementById("durationHelp");
+  const durationValueLabelEl = document.getElementById("durationValueLabel");
 
-  const btnToggleJson = document.getElementById("btnToggleJson");
-  const btnEditSegments = document.getElementById("btnEditSegments");
-  const btnCalcKmMin = document.getElementById("btnCalcKmMin");
-  const btnSaveSession = document.getElementById("btnSaveSession");
-
-  // Init inputs from session
-  titleInput.value = safeText(session.title, "Nyt pas");
-  daySelect.value = safeText(session.day, "Mandag");
-  noteInput.value = safeText(session.note, "");
-
-  // Bestem varighedstype ud fra sessiondata
-  // Default: Distance (matcher din reference)
-  if (session.distance_km != null && session.distance_km !== "") {
-    durationType.value = "distance";
-    durationValue.value = String(session.distance_km);
-  } else if (session.duration_min != null && session.duration_min !== "") {
-    durationType.value = "time";
-    durationValue.value = String(session.duration_min);
-  } else {
-    durationType.value = "distance";
-    durationValue.value = "";
-  }
+  durationTypeEl.value = inferredType;
 
   function updateDurationUI() {
-    const t = durationType.value;
-
+    const t = durationTypeEl.value;
     if (t === "time") {
-      if (durationValueLabel) durationValueLabel.textContent = "Varighed";
-      durationValue.placeholder = "fx 30 min";
-      durationHelp.textContent = "Angiv tid i minutter (fx 30).";
+      durationValueEl.placeholder = "fx 30 min";
+      durationHelpEl.textContent = "Angiv tid i minutter (fx 30).";
+      durationValueLabelEl.textContent = "Varighed";
     } else {
-      if (durationValueLabel) durationValueLabel.textContent = "Varighed";
-      durationValue.placeholder = "fx 5 km";
-      durationHelp.textContent = "Angiv distance i kilometer (fx 5).";
+      durationValueEl.placeholder = "fx 5 km";
+      durationHelpEl.textContent = "Angiv distance i kilometer (fx 5).";
+      durationValueLabelEl.textContent = "Varighed";
     }
   }
 
   function saveDurationToSession() {
-    const t = durationType.value;
-    const raw = durationValue.value.trim();
+    const t = durationTypeEl.value;
+    const raw = durationValueEl.value.trim();
 
     if (!raw) {
       session.distance_km = null;
       session.duration_min = null;
-      btnCalcKmMin.disabled = true;
       return;
     }
 
@@ -399,99 +361,128 @@ function renderEditor() {
     if (n == null || n <= 0) {
       session.distance_km = null;
       session.duration_min = null;
-      btnCalcKmMin.disabled = true;
       return;
     }
 
     if (t === "distance") {
       session.distance_km = n;
       session.duration_min = null;
-      // normaliser input til tal
-      durationValue.value = String(n);
+      durationValueEl.value = String(n); // normaliser
     } else {
       session.duration_min = Math.round(n);
       session.distance_km = null;
-      durationValue.value = String(Math.round(n));
+      durationValueEl.value = String(Math.round(n)); // normaliser
     }
-
-    btnCalcKmMin.disabled = false;
   }
 
-  function syncSessionFromInputs() {
-    session.title = titleInput.value.trim() || "Nyt pas";
-    session.day = daySelect.value;
-    session.note = noteInput.value;
-
-    saveDurationToSession();
-    updateJsonPreview(session);
-    renderMain();
-  }
-
-  // Events
-  titleInput.addEventListener("input", syncSessionFromInputs);
-  daySelect.addEventListener("change", syncSessionFromInputs);
-  noteInput.addEventListener("input", syncSessionFromInputs);
-
-  durationType.addEventListener("change", () => {
+  // Hook: skift type opdaterer UI + gemmer
+  durationTypeEl.addEventListener("change", () => {
     updateDurationUI();
-    syncSessionFromInputs();
+    saveDurationToSession();
+    previewDiv.textContent = JSON.stringify(session, null, 2);
+    renderMain();
   });
 
-  durationValue.addEventListener("input", syncSessionFromInputs);
-  durationValue.addEventListener("blur", syncSessionFromInputs);
+  // Hook: input i varighed gemmer live (så midterliste opdateres)
+  durationValueEl.addEventListener("input", () => {
+    saveDurationToSession();
+    previewDiv.textContent = JSON.stringify(session, null, 2);
+    renderMain();
+  });
 
-  btnToggleJson.addEventListener("click", () => {
+  durationValueEl.addEventListener("blur", () => {
+    saveDurationToSession();
+    previewDiv.textContent = JSON.stringify(session, null, 2);
+    renderMain();
+  });
+
+  // Toggle JSON
+  const toggleJsonBtn = document.getElementById("toggleJsonBtn");
+  toggleJsonBtn.addEventListener("click", () => {
     setJsonVisible(!showJsonPreview);
-    btnToggleJson.textContent = showJsonPreview ? "Skjul JSON" : "Vis JSON";
+    toggleJsonBtn.textContent = showJsonPreview ? "Skjul JSON" : "Vis JSON";
   });
 
-  // Handlinger: kør kun hvis funktion findes
-  btnEditSegments.addEventListener("click", () => {
-    if (typeof window.editSegments === "function") {
-      window.editSegments(session, selectedSessionIndex);
-    } else {
-      alert("Funktionen editSegments() findes ikke endnu.");
-    }
-  });
-
-  btnCalcKmMin.addEventListener("click", () => {
-    if (typeof window.calculateKmMin === "function") {
-      window.calculateKmMin(session, selectedSessionIndex);
-      // Efter beregning kan session være ændret -> opdater UI
-      updateJsonPreview(session);
-      renderMain();
-    } else {
-      alert("Funktionen calculateKmMin() findes ikke endnu.");
-    }
-  });
-
-  btnSaveSession.addEventListener("click", () => {
-    // Din app gemmer typisk hele planen via "Gem plan / Gem som ny"
-    // Denne knap bekræfter bare UI-state.
-    syncSessionFromInputs();
-  });
-
-  // Init UI states
+  // init UI + preview
   updateDurationUI();
-  saveDurationToSession(); // aktiver/deaktiver calc knap korrekt
-  updateJsonPreview(session);
   setJsonVisible(showJsonPreview);
+  previewDiv.textContent = JSON.stringify(session, null, 2);
 }
-
 
 /* =========================================================
-   INIT (kan kaldes fra app.js)
-========================================================= */
-function initUI() {
-  ensurePlanShape();
-  rerenderAll();
+   GEM PAS
+   (udvidet: gemmer også varighed-type værdien korrekt)
+--------------------------------------------------------- */
+function saveSession() {
+  ensurePlan();
+
+  const sessions = getWeekSessions();
+  const session = sessions[selectedSessionIndex];
+  if (!session) return;
+
+  session.title = document.getElementById("title").value;
+  session.day = clampDay(document.getElementById("day").value);
+  session.note = document.getElementById("note").value;
+
+  // Varighed gemmes her også (så "Gem" altid er sandhed)
+  const durationTypeEl = document.getElementById("durationType");
+  const durationValueEl = document.getElementById("durationValue");
+
+  if (durationTypeEl && durationValueEl) {
+    const t = durationTypeEl.value;
+    const raw = durationValueEl.value.trim();
+    const n = parseFirstNumber(raw);
+
+    if (!raw || n == null || n <= 0) {
+      session.distance_km = null;
+      session.duration_min = null;
+    } else if (t === "distance") {
+      session.distance_km = n;
+      session.duration_min = null;
+    } else {
+      session.duration_min = Math.round(n);
+      session.distance_km = null;
+    }
+  }
+
+  renderMain();
+  renderEditor();
 }
 
-// Eksportér til global scope (så inline onclick i HTML stadig virker)
+/* =========================================================
+   TILFØJ NYT PAS
+   (uændret, men sikrer default distance)
+--------------------------------------------------------- */
+function addSession() {
+  ensurePlan();
+
+  plan.sessions.push({
+    week: selectedWeek,
+    day: 1,
+    title: "Nyt pas",
+    distance_km: null,
+    duration_min: null,
+    note: "",
+    segments: []
+  });
+
+  // vælg det nyeste pas i ugen (filtered index)
+  const sessions = getWeekSessions();
+  selectedSessionIndex = sessions.length - 1;
+
+  renderMain();
+  renderEditor();
+}
+
+/* =========================================================
+   EXPORT FUNKTIONER TIL WINDOW
+   (så dine inline onclick virker)
+========================================================= */
 window.renderWeeks = renderWeeks;
 window.renderMain = renderMain;
 window.renderEditor = renderEditor;
 window.editSession = editSession;
+window.saveSession = saveSession;
 window.addSession = addSession;
 window.deleteSession = deleteSession;
-window.initUI = initUI;
+``
