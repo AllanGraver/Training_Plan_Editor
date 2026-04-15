@@ -1,153 +1,174 @@
-/* ---------------------------------------------------------
-   VISUEL INTERVAL-EDITOR + SEGMENT-OVERBLIK
---------------------------------------------------------- */
+"use strict";
 
-function editSegments() {
-  const session = plan.sessions.filter(s => s.week === selectedWeek)[selectedSessionIndex];
+/* =========================================================
+   INTERVAL-EDITOR (SEGMENTS)
+   ========================================================= */
 
-  const editorDiv = document.getElementById("sessionEditor");
-  editorDiv.innerHTML = "<h3>Segmenter</h3>";
+function editSegments(stepIndex) {
+  const session = getCurrentSession();
+  const step = session.steps[stepIndex];
 
-  /* ---------------------------------------------------------
-     VISUELT OVERBLIK OVER EKSISTERENDE SEGMENTER
-  --------------------------------------------------------- */
+  if (!step.segments) {
+    step.segments = [];
+  }
+
+  const editor = document.getElementById("sessionEditor");
+  editor.innerHTML = `
+    <h3>Intervaller</h3>
+    <p>Rediger segmenter og steps for dette intervaltrin.</p>
+  `;
+
+  /* =========================================================
+     SEGMENT-LISTE
+     ========================================================= */
 
   const container = document.createElement("div");
   container.style.display = "flex";
   container.style.flexDirection = "column";
   container.style.gap = "15px";
-  editorDiv.appendChild(container);
+  editor.appendChild(container);
 
-  session.segments.forEach((seg, segIndex) => {
+  step.segments.forEach((seg, segIndex) => {
     const segCard = document.createElement("div");
+    segCard.className = "segment-card";
     segCard.style.border = "1px solid #ccc";
-    segCard.style.padding = "10px";
+    segCard.style.padding = "12px";
     segCard.style.borderRadius = "6px";
     segCard.style.background = "#fafafa";
 
     segCard.innerHTML = `
-      <strong>Segment ${segIndex + 1}</strong><br>
-      <label>Type:</label>
-      <input value="${seg.type}" data-seg="${segIndex}" data-field="type" style="width:100%; margin-bottom:5px;">
+      <strong>Segment ${segIndex + 1}</strong><br><br>
+
+      <label>Gentagelser</label>
+      <input type="number" min="1" value="${seg.repetitions || 1}"
+             data-seg="${segIndex}" data-field="repetitions"
+             style="width:80px; margin-bottom:10px;">
     `;
 
-    // Gentagelser
-    if (seg.type === "interval_block") {
-      const repLabel = document.createElement("div");
-      repLabel.innerHTML = "<label>Gentagelser:</label>";
-      segCard.appendChild(repLabel);
-
-      const repInput = document.createElement("input");
-      repInput.type = "number";
-      repInput.value = seg.repetitions || 1;
-      repInput.dataset.seg = segIndex;
-      repInput.dataset.field = "repetitions";
-      repInput.style.width = "80px";
-      repInput.style.marginBottom = "10px";
-      segCard.appendChild(repInput);
-    }
-
-    /* ---------------------------------------------------------
-       STEPS
-    --------------------------------------------------------- */
+    /* =========================================================
+       STEPS I SEGMENTET
+       ========================================================= */
 
     const stepList = document.createElement("div");
     stepList.style.marginTop = "10px";
 
     seg.steps = seg.steps || [];
 
-    seg.steps.forEach((step, stepIndex) => {
-      const stepRow = document.createElement("div");
-      stepRow.style.display = "flex";
-      stepRow.style.gap = "10px";
-      stepRow.style.marginBottom = "5px";
+    seg.steps.forEach((s, sIndex) => {
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.gap = "10px";
+      row.style.marginBottom = "6px";
 
-      stepRow.innerHTML = `
-        <input type="number" value="${step.duration_min}" data-seg="${segIndex}" data-step="${stepIndex}" data-field="duration_min" style="width:80px;">
-        <input type="text" value="${step.note || ""}" data-seg="${segIndex}" data-step="${stepIndex}" data-field="note" style="flex:1;">
-        <button data-seg="${segIndex}" data-step="${stepIndex}" class="deleteStepBtn">🗑️</button>
+      row.innerHTML = `
+        <input type="number" min="0" step="0.1"
+               value="${s.duration_min}"
+               data-seg="${segIndex}" data-step="${sIndex}" data-field="duration_min"
+               style="width:80px;">
+
+        <input type="text"
+               value="${s.note || ""}"
+               data-seg="${segIndex}" data-step="${sIndex}" data-field="note"
+               style="flex:1;">
+
+        <button class="deleteStepBtn"
+                data-seg="${segIndex}" data-step="${sIndex}">
+          🗑️
+        </button>
       `;
 
-      stepList.appendChild(stepRow);
+      stepList.appendChild(row);
     });
 
     segCard.appendChild(stepList);
 
-    // Tilføj step
+    /* =========================================================
+       TILFØJ STEP
+       ========================================================= */
+
     const addStepBtn = document.createElement("button");
     addStepBtn.textContent = "➕ Tilføj step";
     addStepBtn.dataset.seg = segIndex;
     addStepBtn.onclick = () => {
       seg.steps.push({ duration_min: 1, note: "" });
-      renderEditor();
+      editSegments(stepIndex);
     };
     segCard.appendChild(addStepBtn);
 
-    // Slet segment
+    /* =========================================================
+       SLET SEGMENT
+       ========================================================= */
+
     const deleteSegBtn = document.createElement("button");
     deleteSegBtn.textContent = "🗑️ Slet segment";
     deleteSegBtn.style.marginLeft = "10px";
     deleteSegBtn.dataset.seg = segIndex;
     deleteSegBtn.onclick = () => {
-      session.segments.splice(segIndex, 1);
-      renderEditor();
+      step.segments.splice(segIndex, 1);
+      editSegments(stepIndex);
     };
     segCard.appendChild(deleteSegBtn);
 
     container.appendChild(segCard);
   });
 
-  /* ---------------------------------------------------------
+  /* =========================================================
      TILFØJ NYT SEGMENT
-  --------------------------------------------------------- */
+     ========================================================= */
 
   const addSegBtn = document.createElement("button");
   addSegBtn.textContent = "➕ Tilføj nyt segment";
   addSegBtn.onclick = () => {
-    session.segments.push({
-      type: "interval_block",
+    step.segments.push({
       repetitions: 1,
-      steps: []
+      steps: [
+        { duration_min: 2, note: "Hurtigt" },
+        { duration_min: 1, note: "Roligt" }
+      ]
     });
-    renderEditor();
+    editSegments(stepIndex);
   };
-  editorDiv.appendChild(addSegBtn);
+  editor.appendChild(addSegBtn);
 
-  /* ---------------------------------------------------------
+  /* =========================================================
      INPUT HANDLING
-  --------------------------------------------------------- */
+     ========================================================= */
 
-  editorDiv.querySelectorAll("input").forEach(input => {
+  editor.querySelectorAll("input").forEach(input => {
     input.onchange = () => {
-      const seg = session.segments[input.dataset.seg];
+      const seg = step.segments[input.dataset.seg];
 
       if (input.dataset.step !== undefined) {
-        const step = seg.steps[input.dataset.step];
-        step[input.dataset.field] = input.type === "number"
-          ? Number(input.value)
-          : input.value;
+        const s = seg.steps[input.dataset.step];
+        s[input.dataset.field] =
+          input.type === "number" ? Number(input.value) : input.value;
       } else {
-        seg[input.dataset.field] = input.type === "number"
-          ? Number(input.value)
-          : input.value;
+        seg[input.dataset.field] =
+          input.type === "number" ? Number(input.value) : input.value;
       }
 
-      renderEditor();
+      updateJsonPreview(session);
+      renderMain();
     };
   });
 
-  editorDiv.querySelectorAll(".deleteStepBtn").forEach(btn => {
+  editor.querySelectorAll(".deleteStepBtn").forEach(btn => {
     btn.onclick = () => {
-      const seg = session.segments[btn.dataset.seg];
+      const seg = step.segments[btn.dataset.seg];
       seg.steps.splice(btn.dataset.step, 1);
-      renderEditor();
+      editSegments(stepIndex);
     };
   });
 
-  /* ---------------------------------------------------------
+  /* =========================================================
      OPDATER JSON PREVIEW
-  --------------------------------------------------------- */
+     ========================================================= */
 
-  const previewDiv = document.getElementById("jsonPreview");
-  previewDiv.textContent = JSON.stringify(session, null, 2);
+  updateJsonPreview(session);
 }
+
+/* =========================================================
+   EKSPORTER FUNKTION
+   ========================================================= */
+
+window.editSegments = editSegments;
