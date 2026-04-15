@@ -24,8 +24,6 @@ function renderMain() {
   const main = document.getElementById("main");
   const session = getCurrentSession();
 
-  if (!main) return;
-
   if (!session) {
     main.innerHTML = `
       <h2>Ingen pas valgt</h2>
@@ -45,9 +43,12 @@ function renderMain() {
 
 function renderStepCard(step, index) {
   const colors = {
-    warmup: "#fc4c02",   // Strava orange-ish
-    run: "#007aff",      // Blå
-    cooldown: "#2ecc71"  // Grøn
+    warmup: "#fc4c02",
+    run: "#007aff",
+    cooldown: "#2ecc71",
+    rest: "#9b59b6",
+    recovery: "#16a085",
+    other: "#bdc3c7"
   };
 
   const color = colors[step.type] || "#ffffff";
@@ -62,21 +63,24 @@ function renderStepCard(step, index) {
 }
 
 function stepTitle(type) {
-  if (type === "warmup") return "Opvarmning";
-  if (type === "run") return "Løb";
-  if (type === "cooldown") return "Nedkøling";
-  return type;
+  return {
+    warmup: "Opvarmning",
+    run: "Løb",
+    recovery: "Restitution",
+    rest: "Hvile",
+    cooldown: "Nedkøling",
+    other: "Andet"
+  }[type] || type;
 }
 
 function stepSubtitle(step) {
-  if (step.type === "run") {
-    const dur = step.duration != null ? step.duration.toFixed(2).replace(".", ",") : "0,00";
-    const target = step.target && step.target.from && step.target.to
-      ? `Tempo ${step.target.from}–${step.target.to}`
-      : "Tempo";
-    return `${dur} km • ${target}`;
+  if (step.durationType === "time") {
+    return `${step.hours || 0}t ${step.minutes || 0}m ${step.seconds || 0}s`;
   }
-  return "Tryk på knappen Lap";
+  if (step.durationType === "distance") {
+    return `${step.distance || 0} km`;
+  }
+  return "—";
 }
 
 /* =========================================================
@@ -84,110 +88,92 @@ function stepSubtitle(step) {
    ========================================================= */
 
 function renderEditor() {
-  const editorContainer = document.getElementById("sessionEditor");
-  if (!editorContainer) return;
-
+  const editor = document.getElementById("sessionEditor");
   const session = getCurrentSession();
 
   if (!session) {
-    editorContainer.innerHTML = "Vælg et pas…";
+    editor.innerHTML = "Vælg et pas…";
     updateJsonPreview(null);
     return;
   }
 
-  // Som udgangspunkt: vis første trin, hvis ingen er valgt
   if (session.steps.length > 0) {
     editStep(0);
   } else {
-    editorContainer.innerHTML = "<p>Ingen trin i dette pas endnu.</p>";
+    editor.innerHTML = "<p>Ingen trin endnu.</p>";
     updateJsonPreview(session);
   }
 }
 
 /* =========================================================
-   TRIN-EDITORER (GARMIN-STIL)
+   ENS EDITOR FOR ALLE TRIN
    ========================================================= */
 
 function editStep(index) {
   const session = getCurrentSession();
-  if (!session) return;
-
   const step = session.steps[index];
-  if (!step) return;
-
   const editor = document.getElementById("sessionEditor");
-  if (!editor) return;
 
-  if (step.type === "warmup") editor.innerHTML = warmupEditor(step, index);
-  else if (step.type === "run") editor.innerHTML = runEditor(step, index);
-  else if (step.type === "cooldown") editor.innerHTML = cooldownEditor(step, index);
-  else editor.innerHTML = `<p>Ukendt trintype: ${step.type}</p>`;
+  editor.innerHTML = `
+    <h3>Trinoplysninger</h3>
+
+    <label>Trintype</label>
+    <select onchange="updateStep(${index}, 'type', this.value)">
+      <option value="warmup" ${step.type === "warmup" ? "selected" : ""}>Opvarmning</option>
+      <option value="run" ${step.type === "run" ? "selected" : ""}>Løb</option>
+      <option value="recovery" ${step.type === "recovery" ? "selected" : ""}>Restitution</option>
+      <option value="rest" ${step.type === "rest" ? "selected" : ""}>Hvile</option>
+      <option value="cooldown" ${step.type === "cooldown" ? "selected" : ""}>Nedkøling</option>
+      <option value="other" ${step.type === "other" ? "selected" : ""}>Andet</option>
+    </select>
+
+    <label>Noter</label>
+    <textarea onchange="updateStep(${index}, 'notes', this.value)">${step.notes || ""}</textarea>
+
+    <h3>Varighed</h3>
+
+    <label>Varighedstype</label>
+    <select onchange="updateStep(${index}, 'durationType', this.value)">
+      <option value="time" ${step.durationType === "time" ? "selected" : ""}>Tid</option>
+      <option value="distance" ${step.durationType === "distance" ? "selected" : ""}>Distance</option>
+    </select>
+
+    ${renderDurationFields(step, index)}
+
+    <h3>Intensitetsmål</h3>
+
+    <label>Måltype</label>
+    <select onchange="updateStep(${index}, 'intensity', this.value)">
+      <option value="E" ${step.intensity === "E" ? "selected" : ""}>E: Easy Pace</option>
+      <option value="M" ${step.intensity === "M" ? "selected" : ""}>M: Marathon Pace</option>
+      <option value="T" ${step.intensity === "T" ? "selected" : ""}>T: Tempo Pace</option>
+      <option value="I" ${step.intensity === "I" ? "selected" : ""}>I: Interval Pace</option>
+      <option value="R" ${step.intensity === "R" ? "selected" : ""}>R: Restitution Pace</option>
+    </select>
+  `;
 
   updateJsonPreview(session);
 }
 
-function warmupEditor(step, index) {
-  return `
-    <h3>Opvarmning</h3>
-
-    <label>Varighedstype</label>
-    <input type="text" value="Tryk på knappen Lap" disabled>
-
-    <label>Intensitetsmål</label>
-    <input type="text" value="Intet mål" disabled>
-
-    <label>Noter</label>
-    <textarea onchange="updateStep(${index}, 'notes', this.value)">${step.notes || ""}</textarea>
-  `;
-}
-
-function runEditor(step, index) {
-  const duration = step.duration != null ? step.duration : 0.01;
-  const target = step.target || { type: "pace", from: "5:30", to: "6:00" };
+function renderDurationFields(step, index) {
+  if (step.durationType === "time") {
+    return `
+      <label>Varighed</label>
+      <div class="duration-row">
+        <input type="number" min="0" value="${step.hours || 0}"
+               onchange="updateStep(${index}, 'hours', parseInt(this.value))"> t
+        <input type="number" min="0" max="59" value="${step.minutes || 0}"
+               onchange="updateStep(${index}, 'minutes', parseInt(this.value))"> m
+        <input type="number" min="0" max="59" value="${step.seconds || 0}"
+               onchange="updateStep(${index}, 'seconds', parseInt(this.value))"> s
+      </div>
+    `;
+  }
 
   return `
-    <h3>Løb</h3>
-
-    <label>Varighedstype</label>
-    <select onchange="updateStep(${index}, 'durationType', this.value)">
-      <option value="distance" ${step.durationType === "distance" ? "selected" : ""}>Distance</option>
-      <option value="time" ${step.durationType === "time" ? "selected" : ""}>Tid</option>
-      <option value="lap" ${step.durationType === "lap" ? "selected" : ""}>Lap</option>
-    </select>
-
-    <label>Varighed</label>
-    <input type="number" step="0.01" value="${duration}"
-           onchange="updateStep(${index}, 'duration', parseFloat(this.value))">
-
-    <label>Måltype</label>
-    <select onchange="updateStep(${index}, 'target.type', this.value)">
-      <option value="pace" ${target.type === "pace" ? "selected" : ""}>Tempo</option>
-      <option value="hr" ${target.type === "hr" ? "selected" : ""}>Puls</option>
-      <option value="cadence" ${target.type === "cadence" ? "selected" : ""}>Kadence</option>
-    </select>
-
-    <label>Tempo (fra)</label>
-    <input type="text" value="${target.from || ""}"
-           onchange="updateStep(${index}, 'target.from', this.value)">
-
-    <label>Tempo (til)</label>
-    <input type="text" value="${target.to || ""}"
-           onchange="updateStep(${index}, 'target.to', this.value)">
-  `;
-}
-
-function cooldownEditor(step, index) {
-  return `
-    <h3>Nedkøling</h3>
-
-    <label>Varighedstype</label>
-    <input type="text" value="Tryk på knappen Lap" disabled>
-
-    <label>Intensitetsmål</label>
-    <input type="text" value="Intet mål" disabled>
-
-    <label>Noter</label>
-    <textarea onchange="updateStep(${index}, 'notes', this.value)">${step.notes || ""}</textarea>
+    <label>Distance</label>
+    <input type="number" step="0.01" value="${step.distance || 1}"
+           onchange="updateStep(${index}, 'distance', parseFloat(this.value))"> km
   `;
 }
 
@@ -195,23 +181,11 @@ function cooldownEditor(step, index) {
    OPDATERING AF TRIN-DATA
    ========================================================= */
 
-function updateStep(index, path, value) {
+function updateStep(index, key, value) {
   const session = getCurrentSession();
-  if (!session) return;
-
   const step = session.steps[index];
-  if (!step) return;
 
-  const parts = path.split(".");
-  let obj = step;
-
-  while (parts.length > 1) {
-    const key = parts.shift();
-    if (!obj[key]) obj[key] = {};
-    obj = obj[key];
-  }
-
-  obj[parts[0]] = value;
+  step[key] = value;
 
   renderMain();
   editStep(index);
@@ -229,31 +203,9 @@ function addSession() {
     week: selectedWeek,
     name: `Pas ${sessionsThisWeek.length + 1}`,
     steps: [
-      {
-        type: "warmup",
-        durationType: "lap",
-        duration: null,
-        notes: "",
-        target: null
-      },
-      {
-        type: "run",
-        durationType: "distance",
-        duration: 0.01,
-        notes: "",
-        target: {
-          type: "pace",
-          from: "5:30",
-          to: "6:00"
-        }
-      },
-      {
-        type: "cooldown",
-        durationType: "lap",
-        duration: null,
-        notes: "",
-        target: null
-      }
+      { type: "warmup", durationType: "time", hours: 0, minutes: 5, seconds: 0, notes: "", intensity: "E" },
+      { type: "run", durationType: "distance", distance: 1, notes: "", intensity: "T" },
+      { type: "cooldown", durationType: "time", hours: 0, minutes: 5, seconds: 0, notes: "", intensity: "E" }
     ]
   };
 
@@ -262,9 +214,7 @@ function addSession() {
   const sessions = getSessionsForWeek(selectedWeek);
   selectedSessionIndex = sessions.length - 1;
 
-  if (typeof window.renderWeeks === "function") {
-    window.renderWeeks();
-  }
+  if (typeof window.renderWeeks === "function") window.renderWeeks();
 
   renderMain();
   renderEditor();
@@ -272,18 +222,12 @@ function addSession() {
 
 function addStep() {
   const session = getCurrentSession();
-  if (!session) return;
-
   session.steps.push({
     type: "run",
     durationType: "distance",
-    duration: 1,
+    distance: 1,
     notes: "",
-    target: {
-      type: "pace",
-      from: "5:30",
-      to: "6:00"
-    }
+    intensity: "E"
   });
 
   renderMain();
@@ -297,17 +241,11 @@ function addStep() {
 function updateJsonPreview(session) {
   const container = document.getElementById("jsonPreview");
   if (!container) return;
-
-  if (!session) {
-    container.textContent = "";
-    return;
-  }
-
   container.textContent = JSON.stringify(session, null, 2);
 }
 
 /* =========================================================
-   EKSPORTER FUNKTIONER TIL GLOBALT NAMESPACE
+   EKSPORTER FUNKTIONER
    ========================================================= */
 
 window.renderMain = renderMain;
