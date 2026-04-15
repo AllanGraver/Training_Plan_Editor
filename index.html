@@ -4,24 +4,21 @@
   <meta charset="UTF-8" />
   <title>Træningsplan Editor</title>
 
-  <link rel="stylesheet" href="vendor/jsoneditor.min.css">
-  <link rel="stylesheet" href="css/style.css">
+  <!-- JSONEditor via CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsoneditor@9.10.0/dist/jsoneditor.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsoneditor@9.10.0/dist/jsoneditor.min.js"></script>
 
-  <script src="vendor/jsoneditor.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-  <!-- =====================================================
-       TOP MENU (layout only – no new colors required)
-       ===================================================== -->
   <header class="app-header" role="banner">
     <div class="menu-left">
       <span class="app-title">Træningsplan Editor</span>
     </div>
 
     <nav class="menu-center" aria-label="Primær navigation">
-      <!-- NOTE: focus() works reliably with your "panel scroll" layout -->
       <button class="menu-item" type="button"
         onclick="document.getElementById('sidebar')?.focus()">
         Planer
@@ -47,12 +44,8 @@
     </div>
   </header>
 
-  <!-- =====================================================
-       WRAPPER: makes sidebar|main|editor stay in a row
-       ===================================================== -->
   <div class="app-shell">
 
-    <!-- tabindex makes focus() possible (no visual change) -->
     <div id="sidebar" tabindex="-1">
       <h2>Planer</h2>
 
@@ -84,11 +77,12 @@
 
   </div>
 
-  <script src="js/library.js"></script>
-  <script src="js/segments.js"></script>
-  <script src="js/autocalc.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/app.js"></script>
+  <!-- Versioneret for at undgå cache -->
+  <script src="js/library.js?v=2"></script>
+  <script src="js/segments.js?v=2"></script>
+  <script src="js/autocalc.js?v=2"></script>
+  <script src="js/ui.js?v=2"></script>
+  <script src="js/app.js?v=2"></script>
 
 </body>
 </html>
