@@ -1,3 +1,9 @@
+"use strict";
+
+/* =========================================================
+   LOCAL STORAGE – PLAN BIBLIOTEK
+   ========================================================= */
+
 function loadLibrary() {
   const raw = localStorage.getItem("training_plans_library");
   return raw ? JSON.parse(raw) : {};
@@ -6,6 +12,10 @@ function loadLibrary() {
 function saveLibrary(lib) {
   localStorage.setItem("training_plans_library", JSON.stringify(lib));
 }
+
+/* =========================================================
+   RENDER PLAN-BIBLIOTEK (SIDEBAR)
+   ========================================================= */
 
 function renderLibrary() {
   const lib = loadLibrary();
@@ -20,6 +30,10 @@ function renderLibrary() {
     div.appendChild(item);
   });
 }
+
+/* =========================================================
+   OPRET NY PLAN
+   ========================================================= */
 
 function newPlan() {
   const name = prompt("Navn på den nye plan:");
@@ -40,10 +54,13 @@ function newPlan() {
   selectedSessionIndex = null;
 
   renderLibrary();
-  renderWeeks();
   renderMain();
   renderEditor();
 }
+
+/* =========================================================
+   GEM PLAN
+   ========================================================= */
 
 function savePlan() {
   const name = plan.plan_name || prompt("Navn på planen:");
@@ -55,6 +72,10 @@ function savePlan() {
   renderLibrary();
 }
 
+/* =========================================================
+   GEM SOM NY PLAN
+   ========================================================= */
+
 function savePlanAs() {
   const name = prompt("Navn på ny plan:");
   if (!name) return;
@@ -65,15 +86,25 @@ function savePlanAs() {
   renderLibrary();
 }
 
+/* =========================================================
+   INDLÆS PLAN
+   ========================================================= */
+
 function loadPlan(name) {
   const lib = loadLibrary();
   plan = JSON.parse(JSON.stringify(lib[name]));
+
   selectedWeek = 1;
   selectedSessionIndex = null;
-  renderWeeks();
+
+  renderLibrary();
   renderMain();
   renderEditor();
 }
+
+/* =========================================================
+   EKSPORT / IMPORT
+   ========================================================= */
 
 function exportPlan() {
   const data = JSON.stringify(plan, null, 2);
@@ -99,7 +130,6 @@ function importPlan() {
       plan = JSON.parse(reader.result);
       savePlan();
       renderLibrary();
-      renderWeeks();
       renderMain();
       renderEditor();
     };
@@ -109,3 +139,15 @@ function importPlan() {
 
   input.click();
 }
+
+/* =========================================================
+   EKSPORTER FUNKTIONER
+   ========================================================= */
+
+window.renderLibrary = renderLibrary;
+window.newPlan = newPlan;
+window.savePlan = savePlan;
+window.savePlanAs = savePlanAs;
+window.loadPlan = loadPlan;
+window.exportPlan = exportPlan;
+window.importPlan = importPlan;
