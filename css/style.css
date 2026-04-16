@@ -490,3 +490,37 @@ body.dark-mode .step-action-btn.delete:hover {
   background: #ffe9dd;
   color: #fc4c02;
 }
+/* =====================================================
+   TILFØJ TRÆNINGSPAS – SAMME STIL SOM SIDEBAR-KNAPPER
+   ===================================================== */
+
+#addSessionBtn {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: #fc4c02;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+#addSessionBtn:hover {
+  background: #e04402;
+  transform: translateY(-1px);
+}
+
+/* Dark mode */
+body.dark-mode #addSessionBtn {
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+body.dark-mode #addSessionBtn:hover {
+  background: #444;
+}
