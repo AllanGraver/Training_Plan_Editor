@@ -15,11 +15,17 @@ body {
   overflow: hidden;
 }
 
+/* =====================================================
+   APP SHELL — NU MED 3 LIGE BREDE PANELER
+   ===================================================== */
+
 .app-shell {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* tre lige brede paneler */
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  gap: 0; /* ingen mellemrum mellem paneler */
 }
 
 /* =====================================================
@@ -68,8 +74,6 @@ body {
    ===================================================== */
 
 #sidebar {
-  width: 260px;
-  flex: 0 0 260px;
   background: #ffffff;
   border-right: 1px solid #ccc;
   padding: 15px;
@@ -173,7 +177,6 @@ body {
    ===================================================== */
 
 #main {
-  flex: 1 1 auto;
   padding: 15px;
   overflow-y: auto;
   min-width: 0;
@@ -209,8 +212,6 @@ body {
    ===================================================== */
 
 #editorPanel {
-  width: 320px;
-  flex: 0 0 320px;
   background: #ffffff;
   border-left: 1px solid #ccc;
   padding: 12px;
@@ -351,6 +352,11 @@ body.dark-mode .segment-card {
   border-color: #333;
   color: #fff;
 }
+
+/* =====================================================
+   STEP CARD ACTIONS
+   ===================================================== */
+
 .duration-row {
   display: flex;
   gap: 10px;
@@ -366,6 +372,7 @@ body.dark-mode .segment-card {
 .duration-field input {
   width: 60px;
 }
+
 .step-card-header {
   display: flex;
   justify-content: space-between;
@@ -406,6 +413,10 @@ body.dark-mode .step-action-btn.delete:hover {
   color: #ff4444;
 }
 
+/* =====================================================
+   TOGGLE SWITCH
+   ===================================================== */
+
 .toggle-container { margin-top: 15px; }
 .toggle-track { width: 100%; height: 32px; background: #333; border-radius: 20px; position: relative; cursor: pointer; }
 .toggle-thumb { width: 28px; height: 28px; background: #fc4c02; border-radius: 50%; position: absolute; top: 2px; transition: left 0.25s ease; }
@@ -413,3 +424,16 @@ body.dark-mode .step-action-btn.delete:hover {
 .toggle-thumb.right { left: calc(100% - 30px); }
 .toggle-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 14px; font-weight: 600; }
 .toggle-labels .active { color: #fc4c02; }
+
+/* =====================================================
+   OVERSKRIV FASTE PANELBREDDER (GØR DEM LIGE BREDE)
+   ===================================================== */
+
+#sidebar,
+#main,
+#editorPanel {
+  width: auto !important;
+  flex: none !important;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
