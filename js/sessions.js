@@ -8,6 +8,7 @@
    - Vælger hvilket pas der er aktivt (selectSession)
    ========================================================= */
 
+
 /* ============================
    TILFØJ TRÆNINGSPAS
    ============================ */
@@ -18,7 +19,8 @@ function addSession() {
   const newSession = {
     id: Date.now(),
     week: selectedWeek,
-    name: `Træningpas ${sessionsThisWeek.length + 1}`,
+    name: `Træningspas ${sessionsThisWeek.length + 1}`,
+    day: "Mandag",   // standard ugedag
     steps: [
       {
         type: "warmup",
@@ -49,25 +51,21 @@ function addSession() {
     ]
   };
 
-  // Tilføj pas til planen
   plan.sessions.push(newSession);
 
-  // ❗ VIGTIGT: Vi vælger IKKE automatisk det nye pas
-  // selectedSessionIndex = sessions.length - 1;  <-- fjernet
-
-  // Opdater UI
-  renderMain();     // viser det nye pas i midterpanelet
-  renderEditor();   // højre panel viser "Vælg et pas…"
+  renderMain();
+  renderEditor();
 }
 
+
 /* ============================
-   RENDER MAIN (UGENS PAS)
+   STEP TITLER OG SUBTITLER
    ============================ */
 
 function stepTitle(step) {
   switch (step.type) {
     case "warmup": return "Opvarmning";
-    case "run": return "Løb";
+    case "run": return step.mode === "interval" ? "Intervaller" : "Løb";
     case "recovery": return "Restitution";
     case "rest": return "Hvile";
     case "cooldown": return "Nedkøling";
@@ -79,22 +77,22 @@ function stepTitle(step) {
 function stepSubtitle(step) {
   let parts = [];
 
-  if (step.type === "run" && step.mode === "interval") {
-    parts.push("Intervaller");
-  } else {
-    if (step.durationType === "time") {
-      const h = step.hours || 0;
-      const m = step.minutes || 0;
-      const s = step.seconds || 0;
-      const timeStr = [
-        h ? `${h}t` : "",
-        m ? `${m}m` : "",
-        s ? `${s}s` : ""
-      ].filter(Boolean).join(" ");
-      if (timeStr) parts.push(timeStr);
-    } else if (step.durationType === "distance") {
-      if (step.distance) parts.push(`${step.distance} km`);
-    }
+  if (step.durationType === "time") {
+    const h = step.hours || 0;
+    const m = step.minutes || 0;
+    const s = step.seconds || 0;
+
+    const timeStr = [
+      h ? `${h}t` : "",
+      m ? `${m}m` : "",
+      s ? `${s}s` : ""
+    ].filter(Boolean).join(" ");
+
+    if (timeStr) parts.push(timeStr);
+  }
+
+  if (step.durationType === "distance" && step.distance) {
+    parts.push(`${step.distance} km`);
   }
 
   if (step.intensity) {
@@ -107,6 +105,11 @@ function stepSubtitle(step) {
 
   return parts.join(" • ");
 }
+
+
+/* ============================
+   RENDER STEP CARD
+   ============================ */
 
 function renderStepCard(step, index) {
   const colors = {
@@ -164,6 +167,11 @@ function renderStepCard(step, index) {
   `;
 }
 
+
+/* ============================
+   RENDER MAIN (UGENS PAS)
+   ============================ */
+
 function renderMain() {
   const main = document.getElementById("main");
   if (!main) return;
@@ -179,20 +187,26 @@ function renderMain() {
 
   sessions.forEach((session, idx) => {
     const isSelected = idx === selectedSessionIndex;
+
     html += `
       <div class="session-card ${isSelected ? "selected" : ""}" onclick="selectSession(${idx})">
+
         <div class="session-header">
           <div class="session-title">${session.name || "Pas"}</div>
+          <div class="session-day">${session.day || "Ugedag ikke valgt"}</div>
         </div>
+
         <div class="session-steps">
           ${session.steps.map((step, sIdx) => renderStepCard(step, sIdx)).join("")}
         </div>
+
       </div>
     `;
   });
 
   main.innerHTML = html;
 }
+
 
 /* ============================
    VÆLG TRÆNINGSPAS
@@ -203,6 +217,7 @@ function selectSession(index) {
   renderMain();
   renderEditor();
 }
+
 
 /* ============================
    WINDOW EXPORTS
