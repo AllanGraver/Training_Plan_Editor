@@ -2,11 +2,12 @@
 /* =========================================================
    FILE: steps.js
    PURPOSE:
-   - Højre panel: editor for trin (steps)
-   - Redigering af type, noter, varighed, intensitet
+   - Højre panel: editor for træningspas og trin (steps)
+   - Redigering af pas-navn, ugedag, type, noter, varighed, intensitet
    - Run-mode toggle (simpelt / intervaller)
    - Flyt/slet/tilføj trin + JSON preview
    ========================================================= */
+
 
 /* ============================
    RENDER EDITOR PANEL
@@ -24,6 +25,7 @@ function renderEditor() {
     return;
   }
 
+  // Hvis der er trin, vis første trin i editoren
   if (session.steps.length > 0) {
     editStep(0);
   } else {
@@ -32,8 +34,9 @@ function renderEditor() {
   }
 }
 
+
 /* ============================
-   EDIT STEP
+   EDIT STEP (inkl. pas-navn + ugedag)
    ============================ */
 
 function editStep(index) {
@@ -44,7 +47,23 @@ function editStep(index) {
   const editor = document.getElementById("sessionEditor");
   if (!editor) return;
 
+  const currentDay = session.day || "Mandag";
+
   editor.innerHTML = `
+    <h3>Træningspas</h3>
+
+    <label>Navn på træningspas</label>
+    <input type="text"
+           value="${session.name || ""}"
+           onchange="updateSessionField('name', this.value)">
+
+    <label>Ugedag</label>
+    <select onchange="updateSessionField('day', this.value)">
+      ${["Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag","Søndag"]
+        .map(d => `<option value="${d}" ${d === currentDay ? "selected" : ""}>${d}</option>`)
+        .join("")}
+    </select>
+
     <h3>Trinoplysninger</h3>
 
     <label>Trintype</label>
@@ -62,19 +81,37 @@ function editStep(index) {
 
     ${step.type === "run" ? renderRunModeToggle(step, index) : ""}
 
-    ${step.type === "run" && step.mode === "interval"
-      ? renderIntervalEditorButton(index)
-      : renderDurationFields(step, index)
+    ${
+      step.type === "run" && step.mode === "interval"
+        ? renderIntervalEditorButton(index)
+        : renderDurationFields(step, index)
     }
 
-    ${step.type === "run" && step.mode === "interval"
-      ? ""
-      : renderIntensityField(step, index)
+    ${
+      step.type === "run" && step.mode === "interval"
+        ? ""
+        : renderIntensityField(step, index)
     }
   `;
 
   updateJsonPreview(session);
 }
+
+
+/* ============================
+   OPDATERING AF PAS-FELTER (NAVN / UGEDAG)
+   ============================ */
+
+function updateSessionField(key, value) {
+  const session = getCurrentSession();
+  if (!session) return;
+
+  session[key] = value;
+
+  renderMain();
+  renderEditor();
+}
+
 
 /* ============================
    RUN MODE TOGGLE
@@ -125,6 +162,7 @@ function toggleRunMode(index) {
   editStep(index);
 }
 
+
 /* ============================
    INTERVAL EDITOR BUTTON
    ============================ */
@@ -135,6 +173,7 @@ function renderIntervalEditorButton(index) {
     <button onclick="editSegments(${index})">Rediger intervaller</button>
   `;
 }
+
 
 /* ============================
    VARIGHEDSFELTER
@@ -183,6 +222,7 @@ function renderDurationFields(step, index) {
   `;
 }
 
+
 /* ============================
    INTENSITETSFELT
    ============================ */
@@ -202,6 +242,7 @@ function renderIntensityField(step, index) {
   `;
 }
 
+
 /* ============================
    OPDATERING AF TRIN-DATA
    ============================ */
@@ -216,6 +257,7 @@ function updateStep(index, key, value) {
   renderMain();
   editStep(index);
 }
+
 
 /* ============================
    TILFØJ / SLET / FLYT TRIN
@@ -274,6 +316,7 @@ function moveStepDown(index) {
   editStep(index + 1);
 }
 
+
 /* ============================
    JSON PREVIEW
    ============================ */
@@ -283,6 +326,7 @@ function updateJsonPreview(session) {
   if (!container) return;
   container.textContent = JSON.stringify(session, null, 2);
 }
+
 
 /* ============================
    WINDOW EXPORTS
@@ -297,3 +341,4 @@ window.moveStepUp = moveStepUp;
 window.moveStepDown = moveStepDown;
 window.toggleRunMode = toggleRunMode;
 window.updateJsonPreview = updateJsonPreview;
+window.updateSessionField = updateSessionField;
