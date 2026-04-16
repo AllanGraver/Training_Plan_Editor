@@ -77,7 +77,31 @@ function renderSessionsForWeek() {
 /* ============================
    WINDOW EXPORTS
    ============================ */
+/* ============================
+   TILFØJ NY TRÆNINGSUGE
+   ============================ */
 
+function addWeek() {
+  const maxWeek = getMaxWeekInPlan();
+  const newWeek = maxWeek + 1;
+
+  // Tilføj en tom uge (ingen pas endnu)
+  plan.sessions.push({
+    id: Date.now(),
+    week: newWeek,
+    name: "Pas 1",
+    steps: []
+  });
+
+  selectedWeek = newWeek;
+  selectedSessionIndex = null;
+
+  renderWeeks();
+  renderMain();
+  renderEditor();
+}
 window.renderWeeks = renderWeeks;
 window.selectWeek = selectWeek;
 window.renderSessionsForWeek = renderSessionsForWeek;
+window.addWeek = addWeek;
+
