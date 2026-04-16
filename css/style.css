@@ -225,7 +225,59 @@ body {
   color: #555;
   font-size: 14px;
 }
+/* =====================================================
+   KOMPAKT TOP-RIGHT ACTION BAR PÅ TRIN
+   ===================================================== */
 
+.step-card {
+  position: relative;
+  padding-top: 10px;
+  padding-right: 40px; /* plads til knapperne */
+}
+
+.step-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.step-actions {
+  display: flex;
+  gap: 4px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.step-action-btn {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #666;
+  transition: 0.15s;
+}
+
+.step-action-btn:hover {
+  background: #eee;
+  color: #fc4c02;
+}
+
+.step-action-btn.delete:hover {
+  background: #ffe5e5;
+  color: #d00000;
+}
+
+/* Dark mode */
+body.dark-mode .step-action-btn:hover {
+  background: #333;
+  color: #fc4c02;
+}
+
+body.dark-mode .step-action-btn.delete:hover {
+  background: #552222;
+  color: #ff4444;
+}
 /* =====================================================
    TILFØJ TRÆNINGSPAS – SAMME STIL SOM SIDEBAR
    ===================================================== */
