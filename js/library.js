@@ -94,7 +94,7 @@ function renderLibrary() {
    ============================ */
 
 function newPlan() {
-  const name = prompt("Navn på den nye plan:");
+  const name = prompt("Navn på den nye træningsplan:");
   if (!name) return;
 
   // Ny plan med 1 uge og 1 standard-pas i uge 1
@@ -157,7 +157,7 @@ function newPlan() {
    ============================ */
 
 function savePlan() {
-  const name = plan.plan_name || prompt("Navn på planen:");
+  const name = plan.plan_name || prompt("Navn på træningsplanen:");
   if (!name) return;
 
   plan.plan_name = name;
@@ -174,7 +174,7 @@ function savePlan() {
    ============================ */
 
 function savePlanAs() {
-  const name = prompt("Navn på ny plan:");
+  const name = prompt("Navn på ny træningsplan:");
   if (!name) return;
 
   plan.plan_name = name;
