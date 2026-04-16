@@ -1,11 +1,12 @@
 "use strict";
-
 /* =========================================================
    FILE: sessions.js
    PURPOSE:
-   - Håndterer træningspas (sessions)
-   - Viser ugens pas i midterpanelet
+   - Håndterer træningspas (sessions) i en uge
+   - Viser ugens pas i midterpanelet (renderMain)
+   - Tilføjer nye træningspas (addSession)
    - Ugedag vælges i midterpanelet
+   - Tilføj trin / tilføj interval-blok
    ========================================================= */
 
 
@@ -14,8 +15,6 @@
    ============================ */
 
 function addSession() {
-  const sessionsThisWeek = getSessionsForWeek(selectedWeek);
-
   const newSession = {
     id: Date.now(),
     week: selectedWeek,
@@ -58,6 +57,32 @@ function addSession() {
 
 
 /* ============================
+   HJÆLPER: SESSIONS FOR UGE
+   ============================ */
+
+function getSessionsForWeek(week) {
+  return plan.sessions.filter(s => s.week === week);
+}
+
+function getCurrentSession() {
+  const sessions = getSessionsForWeek(selectedWeek);
+  return sessions[selectedSessionIndex] || null;
+}
+
+function deleteSession(index) {
+  const sessions = getSessionsForWeek(selectedWeek);
+  const sessionToDelete = sessions[index];
+  if (!sessionToDelete) return;
+
+  plan.sessions = plan.sessions.filter(s => s.id !== sessionToDelete.id);
+
+  selectedSessionIndex = 0;
+  renderMain();
+  renderEditor();
+}
+
+
+/* ============================
    OPDATER UGEDAG
    ============================ */
 
@@ -67,6 +92,84 @@ function updateSessionDay(index, day) {
   if (!session) return;
 
   session.day = day;
+
+  renderMain();
+  renderEditor();
+}
+
+
+/* ============================
+   HJÆLPER: INDSÆT FØR NEDKØLING
+   ============================ */
+
+function insertBeforeCooldown(session, steps) {
+  const idx = session.steps.findIndex(s => s.type === "cooldown");
+  const insertIndex = idx === -1 ? session.steps.length : idx;
+  session.steps.splice(insertIndex, 0, ...steps);
+}
+
+
+/* ============================
+   TILFØJ ENKELT TRIN
+   ============================ */
+
+function addSingleStepToSession(sessionIndex) {
+  const sessions = getSessionsForWeek(selectedWeek);
+  const session = sessions[sessionIndex];
+  if (!session) return;
+
+  const newStep = {
+    type: "run",
+    durationType: "time",
+    hours: 0,
+    minutes: 5,
+    seconds: 0,
+    intensity: "E",
+    notes: ""
+  };
+
+  insertBeforeCooldown(session, [newStep]);
+
+  renderMain();
+  renderEditor();
+}
+
+
+/* ============================
+   TILFØJ INTERVAL-BLOK (2 TRIN)
+   ============================ */
+
+function addIntervalToSession(sessionIndex) {
+  const sessions = getSessionsForWeek(selectedWeek);
+  const session = sessions[sessionIndex];
+  if (!session) return;
+
+  const blockId = Date.now();
+
+  const intervalBlock = [
+    {
+      type: "run",
+      durationType: "time",
+      hours: 0,
+      minutes: 2,
+      seconds: 0,
+      intensity: "I",
+      notes: "Hurtigt",
+      blockId
+    },
+    {
+      type: "recovery",
+      durationType: "time",
+      hours: 0,
+      minutes: 1,
+      seconds: 0,
+      intensity: "E",
+      notes: "Roligt",
+      blockId
+    }
+  ];
+
+  insertBeforeCooldown(session, intervalBlock);
 
   renderMain();
   renderEditor();
@@ -146,17 +249,9 @@ function renderStepCard(step, index) {
 
         <div class="step-actions" onclick="event.stopPropagation()">
 
-          <span class="step-action-btn" onclick="moveStepUp(${index})">
-            ▲
-          </span>
-
-          <span class="step-action-btn" onclick="moveStepDown(${index})">
-            ▼
-          </span>
-
-          <span class="step-action-btn delete" onclick="deleteStep(${index})">
-            🗑
-          </span>
+          <span class="step-action-btn" onclick="moveStepUp(${index})">▲</span>
+          <span class="step-action-btn" onclick="moveStepDown(${index})">▼</span>
+          <span class="step-action-btn delete" onclick="deleteStep(${index})">🗑</span>
 
         </div>
       </div>
@@ -179,6 +274,7 @@ function renderMain() {
 
   if (sessions.length === 0) {
     main.innerHTML = "<p>Ingen træningspas i denne uge endnu.</p>";
+    document.getElementById("mainTitle").textContent = "Træningspas";
     return;
   }
 
@@ -191,20 +287,23 @@ function renderMain() {
       <div class="session-card ${isSelected ? "selected" : ""}" onclick="selectSession(${idx})">
 
         <div class="session-header">
-
           <div class="session-title">Træningspas: ${session.day}</div>
 
           <select class="session-day-select"
-                  onchange="updateSessionDay(${idx}, this.value)">
+                  onchange="updateSessionDay(${idx}, this.value); event.stopPropagation();">
             ${["Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag","Søndag"]
               .map(d => `<option value="${d}" ${d === session.day ? "selected" : ""}>${d}</option>`)
               .join("")}
           </select>
-
         </div>
 
         <div class="session-steps">
           ${session.steps.map((step, sIdx) => renderStepCard(step, sIdx)).join("")}
+        </div>
+
+        <div class="session-actions" onclick="event.stopPropagation();">
+          <button onclick="addSingleStepToSession(${idx});">Tilføj trin</button>
+          <button onclick="addIntervalToSession(${idx});">Tilføj interval</button>
         </div>
 
       </div>
@@ -213,7 +312,6 @@ function renderMain() {
 
   main.innerHTML = html;
 
-  // Opdater overskrift
   const current = sessions[selectedSessionIndex];
   if (current) {
     document.getElementById("mainTitle").textContent =
@@ -241,3 +339,8 @@ window.addSession = addSession;
 window.renderMain = renderMain;
 window.selectSession = selectSession;
 window.updateSessionDay = updateSessionDay;
+window.addSingleStepToSession = addSingleStepToSession;
+window.addIntervalToSession = addIntervalToSession;
+window.getSessionsForWeek = getSessionsForWeek;
+window.getCurrentSession = getCurrentSession;
+window.deleteSession = deleteSession;
