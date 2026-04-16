@@ -23,7 +23,7 @@
   </header>
 
   <!-- =====================================================
-       APP SHELL
+       APP SHELL – 3 kolonner (sidebar, main, editor)
        ===================================================== -->
   <div class="app-shell">
 
@@ -44,21 +44,21 @@
 
       <div id="sidebarPlans"></div>
 
-
       <hr>
 
       <h2>Uger</h2>
-    <div id="weekList"></div>
+      <div id="weekList"></div>
 
       <button onclick="addWeek()">+ Tilføj træningsuge</button>
     </div>
 
     <!-- =====================================================
-         MAIN – Oversigt over ugens pas
+         MAIN PANEL – Oversigt over ugens pas
          ===================================================== -->
-    <button id="addSessionBtn" onclick="addSession()">+ Tilføj træningspas</button>
-    <div id="main" tabindex="-1"></div>
-
+    <div id="mainPanel">
+      <button id="addSessionBtn" onclick="addSession()">+ Tilføj træningspas</button>
+      <div id="main" tabindex="-1"></div>
+    </div>
 
     <!-- =====================================================
          EDITOR PANEL – Rediger valgt pas
@@ -76,9 +76,6 @@
   <!-- =====================================================
        SCRIPTS (versioneret for at undgå cache)
        ===================================================== -->
-  <!-- =====================================================
-     SCRIPTS (versioneret for at undgå cache)
-     ===================================================== -->
   <script src="js/app.js?v=3"></script>
   <script src="js/library.js?v=3"></script>
   <script src="js/weeks.js?v=3"></script>
@@ -86,7 +83,6 @@
   <script src="js/steps.js?v=3"></script>
   <script src="js/segments.js?v=3"></script>
   <script src="js/autocalc.js?v=3"></script>
-
 
 </body>
 </html>
