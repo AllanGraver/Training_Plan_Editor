@@ -19,7 +19,7 @@ function saveLibrary(lib) {
 
 function renderLibrary() {
   const lib = loadLibrary();
-  const div = document.getElementById("planLibrary");
+  const div = document.getElementById("sidebarPlans");
   div.innerHTML = "";
 
   Object.keys(lib).forEach(name => {
