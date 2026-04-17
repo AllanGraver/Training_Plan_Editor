@@ -150,52 +150,40 @@ body {
    WEEK BUTTONS
    ===================================================== */
 
-.week-button {
+/* Container: ugerne skal ligge under hinanden */
+#weekButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Selve ugeknappen */
+.week-btn {
   width: 100%;
   padding: 6px 8px;
   font-size: 14px;
-  margin-bottom: 4px;
   border-radius: 6px;
   border: 1px solid #ddd;
   background: #fafafa;
   cursor: pointer;
   transition: 0.2s;
+  text-align: left;
 }
 
-.week-button:hover {
+/* Hover */
+.week-btn:hover {
   background: #fc4c02;
   color: white;
   border-color: #fc4c02;
 }
 
-.week-button.active {
+/* Valgt uge: sort ramme */
+.week-btn.selected {
   background: #fc4c02;
   color: white;
-  border: 2px solid black !important;
-}
-.week-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  border: 2px solid #000;
 }
 
-.week-spacer {
-  height: 10px; /* 👈 luft mellem ugerne og knappen */
-}
-
-.add-week-btn {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px dashed #bbb;
-  background: #f6f6f6;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.add-week-btn:hover {
-  background: #efefef;
-}
 
 /* =====================================================
    MAIN PANEL
