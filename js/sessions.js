@@ -157,6 +157,8 @@ function addIntervalToSession(sessionIndex) {
       notes: "Hurtigt",
       blockId,
       blockReps: 2 // ✅ default 2 gange
+      blockAnchor: true,      // ✅ nyt
+      blockRole: "work"       // ✅ nyt
     },
     {
       type: "recovery",
@@ -168,6 +170,8 @@ function addIntervalToSession(sessionIndex) {
       notes: "Roligt",
       blockId,
       blockReps: 2 // ✅ default 2 gange
+      blockAnchor: true,      // ✅ nyt
+      blockRole: "recovery"   // ✅ ny
     }
   ];
 
@@ -411,9 +415,74 @@ function updateIntervalBlockReps(blockId, reps) {
     }
   });
 
+   
+// ✅ sikrer at alle trin i range får samme reps
+  recomputeIntervalBlocks(session);
+
   renderMain();
   renderEditor();
 }
+
+
+
+function recomputeIntervalBlocks(session) {
+  if (!session || !session.steps) return;
+
+  const steps = session.steps;
+
+  // 1) Find alle blockId’er der har anchors
+  const anchorIds = new Set(
+    steps
+      .filter(s => s.blockAnchor && s.blockId)
+      .map(s => s.blockId)
+  );
+
+  // Markér hvilke index der ender som "inde i en blok"
+  const inAnyBlock = new Array(steps.length).fill(false);
+
+  // 2) For hver blok: find work/recovery anchor og definér range
+  anchorIds.forEach(id => {
+    const workIndex = steps.findIndex(s =>
+      s.blockAnchor && s.blockId === id && s.blockRole === "work"
+    );
+    const recIndex = steps.findIndex(s =>
+      s.blockAnchor && s.blockId === id && s.blockRole === "recovery"
+    );
+
+    // Hvis noget mangler: ryd løse medlemmer (failsafe)
+    if (workIndex === -1 || recIndex === -1) {
+      steps.forEach(s => {
+        if (!s.blockAnchor && s.blockId === id) {
+          delete s.blockId;
+          delete s.blockReps;
+        }
+      });
+      return;
+    }
+
+    const start = Math.min(workIndex, recIndex);
+    const end = Math.max(workIndex, recIndex);
+
+    // Reps tages fra work anchor
+    const reps = Number(steps[workIndex].blockReps ?? 2);
+
+    // 3) Alle trin i start..end er en del af blokken
+    for (let i = start; i <= end; i++) {
+      steps[i].blockId = id;
+      steps[i].blockReps = reps;
+      inAnyBlock[i] = true;
+    }
+  });
+
+  // 4) Trin udenfor alle blokke mister blockId (medmindre de er anchors)
+  for (let i = 0; i < steps.length; i++) {
+    if (!inAnyBlock[i] && !steps[i].blockAnchor && steps[i].blockId) {
+      delete steps[i].blockId;
+      delete steps[i].blockReps;
+    }
+  }
+}
+``
 
 /* ============================
    WINDOW EXPORTS
