@@ -553,15 +553,6 @@ body.dark-mode .session-day-select {
   transform: translateY(-1px);
 }
 
-body.dark-mode #addSessionBtn {
-  background: #333;
-  color: #fff;
-  border: 1px solid #555;
-}
-
-body.dark-mode #addSessionBtn:hover {
-  background: #444;
-}
 
 
 /* =========================================
