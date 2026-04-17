@@ -19,7 +19,6 @@ function addSession() {
     id: Date.now(),
     week: selectedWeek,
     name: "Træningspas",
-    day: "Mandag",
     steps: [
       {
         type: "warmup",
