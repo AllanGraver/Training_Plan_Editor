@@ -360,6 +360,8 @@ function renderMain() {
           <div class="session-title">Træningspas ${idx + 1}:</div>
 
           <select class="session-day-select"
+                  onclick="event.stopPropagation()"
+                  onmousedown="event.stopPropagation()"
                   onchange="updateSessionDay(${idx}, this.value); event.stopPropagation();">
             ${["Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag","Søndag"]
               .map(d => `<option value="${d}" ${d === session.day ? "selected" : ""}>${d}</option>`)
