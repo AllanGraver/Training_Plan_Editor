@@ -627,3 +627,37 @@ body.dark-mode .session-day-select {
   border-radius: 10px;
   background: var(--strava-orange);
 }
+/* =========================================
+   LÅS "TRÆNINGSPLANER" LISTE: ændrer IKKE udseende i dark mode
+   ========================================= */
+
+/* Plan-items: samme look i både light og dark */
+body.dark-mode .plan-item {
+  background: #f7f7f7 !important;
+  border: 1px solid #ddd !important;
+  color: #000 !important;
+}
+
+/* Hover: behold samme Strava-orange hover (som i light mode) */
+body.dark-mode .plan-item:hover {
+  background: #fc4c02 !important;
+  color: #fff !important;
+  border-color: #fc4c02 !important;
+}
+
+/* Selected: behold samme selected-look (som i light mode) */
+body.dark-mode .plan-item.selected {
+  background: #ffe9dd !important;
+  border: 2px solid #000 !important;
+  color: #000 !important;
+}
+
+/* Skraldespands-ikon: behold light-mode look */
+body.dark-mode .delete-plan {
+  color: #777 !important;
+}
+
+body.dark-mode .delete-plan:hover {
+  color: #fc4c02 !important;
+  background: #ffe9dd !important;
+}
