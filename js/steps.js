@@ -1,4 +1,5 @@
 "use strict";
+let selectedStepIndex = 0;
 /* =========================================================
    FILE: steps.js
    PURPOSE:
@@ -25,12 +26,17 @@ function renderEditor() {
     return;
   }
 
-  if (session.steps.length > 0) {
-    editStep(0);
-  } else {
+  if (!session.steps || session.steps.length === 0) {
     editor.innerHTML = "<p>Ingen trin endnu.</p>";
     updateJsonPreview(session);
+    return;
   }
+
+  // clamp index så den altid er valid
+  selectedStepIndex = Math.max(0, Math.min(selectedStepIndex, session.steps.length - 1));
+
+  // ✅ vis det valgte trin (ikke altid 0)
+  editStep(selectedStepIndex);
 }
 
 
@@ -41,6 +47,8 @@ function renderEditor() {
 function editStep(index) {
   const session = getCurrentSession();
   if (!session) return;
+
+  selectedStepIndex = index; // ✅ husk valgt trin
 
   const step = session.steps[index];
   const editor = document.getElementById("sessionEditor");
@@ -179,11 +187,11 @@ function deleteStep(index) {
   if (!session) return;
 
   const step = session.steps[index];
-  
-// Hvis det er et anker: slet hele blokken
+
+  // Hvis det er et anker: slet hele blokken
   if (step.blockId && step.blockAnchor) {
     session.steps = session.steps.filter(s => s.blockId !== step.blockId);
-  } 
+  }
   // Hvis det blot er et medlem i blokken: slet kun dette trin
   else {
     session.steps.splice(index, 1);
@@ -192,23 +200,37 @@ function deleteStep(index) {
   // ✅ re-beregn blokke (opløs/tilpas medlemskab)
   recomputeIntervalBlocks(session);
 
+  // Hvis sessionen er tom → slet hele træningspasset
   if (session.steps.length === 0) {
     deleteSession(selectedSessionIndex);
     return;
+  }
+
+  // ✅ Hold valgt trin indenfor gyldigt område (vigtigt for højre panel)
+  if (typeof selectedStepIndex !== "undefined") {
+    selectedStepIndex = Math.max(0, Math.min(selectedStepIndex, session.steps.length - 1));
   }
 
   renderMain();
   renderEditor();
 }
 
+
 function moveStepUp(index) {
   const session = getCurrentSession();
   if (!session) return;
 
   const step = session.steps[index];
-  
-// flyt enkelt-trin
-  moveSingleStep(index, -1);
+
+  if (step.blockId) {
+    moveBlock(step.blockId, -1);
+    // Ved blokflyt: vi lader selection blive ved samme "index" og lader renderEditor clamp'e
+  } else {
+    moveSingleStep(index, -1);
+
+    // ✅ hvis du flytter det valgte trin, så flyt selection med
+    if (selectedStepIndex === index) selectedStepIndex = Math.max(0, index - 1);
+  }
 
   // ✅ auto ind/ud af intervalrammen
   recomputeIntervalBlocks(session);
@@ -217,14 +239,21 @@ function moveStepUp(index) {
   renderEditor();
 }
 
+
 function moveStepDown(index) {
   const session = getCurrentSession();
   if (!session) return;
 
   const step = session.steps[index];
-  
-// flyt enkelt-trin
-  moveSingleStep(index, 1);
+
+  if (step.blockId) {
+    moveBlock(step.blockId, 1);
+  } else {
+    moveSingleStep(index, 1);
+
+    // ✅ hvis du flytter det valgte trin, så flyt selection med
+    if (selectedStepIndex === index) selectedStepIndex = Math.min(session.steps.length - 1, index + 1);
+  }
 
   // ✅ auto ind/ud af intervalrammen
   recomputeIntervalBlocks(session);
