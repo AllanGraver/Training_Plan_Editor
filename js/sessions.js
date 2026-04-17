@@ -498,3 +498,4 @@ window.getSessionsForWeek = getSessionsForWeek;
 window.getCurrentSession = getCurrentSession;
 window.deleteSession = deleteSession;
 window.updateIntervalBlockReps = updateIntervalBlockReps;
+window.recomputeIntervalBlocks = recomputeIntervalBlocks;
