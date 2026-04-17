@@ -155,7 +155,8 @@ function addIntervalToSession(sessionIndex) {
       seconds: 0,
       intensity: "I",
       notes: "Hurtigt",
-      blockId
+      blockId,
+      blockReps: 2 // ✅ default 2 gange
     },
     {
       type: "recovery",
@@ -165,7 +166,8 @@ function addIntervalToSession(sessionIndex) {
       seconds: 0,
       intensity: "E",
       notes: "Roligt",
-      blockId
+      blockId,
+      blockReps: 2 // ✅ default 2 gange
     }
   ];
 
@@ -265,6 +267,71 @@ function renderStepCard(step, index) {
 /* ============================
    RENDER MAIN (UGENS PAS)
    ============================ */
+function renderStepsWithBlocks(session) {
+  let html = "";
+  const steps = session.steps || [];
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+
+    // Normal step uden block
+    if (!step.blockId) {
+      html += renderStepCard(step, i);
+      continue;
+    }
+
+    // Start på en block: saml alle efterfølgende steps med samme blockId
+    const blockId = step.blockId;
+    const blockSteps = [];
+    let j = i;
+
+    while (j < steps.length && steps[j].blockId === blockId) {
+      blockSteps.push({ step: steps[j], index: j });
+      j++;
+    }
+
+    // reps: tag fra første step, fallback 2
+    const reps = Number(blockSteps[0].step.blockReps ?? 2);
+
+    // Dropdown values (tilpas efter behov)
+    const repOptions = [1,2,3,4,5,6,8,10,12,15,20];
+
+    html += `
+      <div class="interval-block"
+           style="
+             border: 2px dashed #ff6b00;
+             border-radius: 12px;
+             padding: 10px;
+             margin: 10px 0;
+             background: #fff8f2;
+           "
+      >
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+          <div style="font-weight:700;">Interval: </div>
+
+          <div style="display:flex; align-items:center; gap:8px;">
+            <select
+              onchange="updateIntervalBlockReps(${blockId}, this.value); event.stopPropagation();"
+              onclick="event.stopPropagation();"
+              style="padding:4px 8px; border-radius:10px;"
+            >
+              ${repOptions.map(n => `<option value="${n}" ${n === reps ? "selected" : ""}>${n} gange</option>`).join("")}
+            </select>
+          </div>
+        </div>
+
+        <div class="interval-block-steps" style="display:flex; flex-direction:column; gap:8px;">
+          ${blockSteps.map(bs => renderStepCard(bs.step, bs.index)).join("")}
+        </div>
+      </div>
+    `;
+
+    // spring i frem til efter blokken
+    i = j - 1;
+  }
+
+  return html;
+}
 
 function renderMain() {
   const main = document.getElementById("main");
@@ -298,7 +365,7 @@ function renderMain() {
         </div>
 
         <div class="session-steps">
-          ${session.steps.map((step, sIdx) => renderStepCard(step, sIdx)).join("")}
+          ${renderStepsWithBlocks(session)}
         </div>
 
         <div class="session-actions" onclick="event.stopPropagation();">
@@ -331,6 +398,23 @@ function selectSession(index) {
 }
 
 
+
+
+
+function updateIntervalBlockReps(blockId, reps) {
+  const session = getCurrentSession();
+  if (!session) return;
+
+  session.steps.forEach(step => {
+    if (step.blockId === blockId) {
+      step.blockReps = Number(reps);
+    }
+  });
+
+  renderMain();
+  renderEditor();
+}
+
 /* ============================
    WINDOW EXPORTS
    ============================ */
@@ -344,3 +428,4 @@ window.addIntervalToSession = addIntervalToSession;
 window.getSessionsForWeek = getSessionsForWeek;
 window.getCurrentSession = getCurrentSession;
 window.deleteSession = deleteSession;
+window.updateIntervalBlockReps = updateIntervalBlockReps;
