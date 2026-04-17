@@ -661,3 +661,63 @@ body.dark-mode .delete-plan:hover {
   color: #fc4c02 !important;
   background: #ffe9dd !important;
 }
+/* =====================================================
+   UGER – MØRKEGRÅ STRAVA-STIL (overstyr orange hover/selected)
+   ===================================================== */
+
+#weekButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+/* Standard ugeknap: mørkegrå */
+.week-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: #2b2f36;           /* mørkegrå */
+  border: 1px solid #3b414a;     /* mørk kant */
+  color: #f3f4f6;                /* lys tekst */
+
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+
+/* Hover: lidt lysere grå (IKKE orange) */
+.week-btn:hover {
+  background: #343a43 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+/* Valgt uge: sort ramme + lidt anderledes grå */
+.week-btn.selected {
+  background: #3a404a !important;
+  border: 2px solid #000 !important;  /* ✅ sort ramme */
+  color: #ffffff !important;
+  position: relative;
+}
+
+/* Valgfri Strava accent: lille orange stripe til venstre */
+.week-btn.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 10px;
+  background: #fc4c02; /* Strava orange accent */
+}
+
+/* Sørg for at gamle dark-mode week-button regler ikke påvirker */
+body.dark-mode .week-button,
+body.dark-mode .week-button.active {
+  all: unset;
+}
