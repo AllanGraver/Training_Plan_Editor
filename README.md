@@ -4,7 +4,7 @@
 
 Dette projekt indeholder en browserbaseret editor til opbygning og redigering af planer til **løbetræning**.
 
-Fokus er på **enkelt overblik**, **struktureret træning** og en **UI‑opbygning inspireret af Garmin/Strava**, hvor træningen er sammensat af tydelige trin som **Opvarmning, Løb og Nedkøling**.
+Fokus er på enkelt overblik, struktureret træning og en UI‑opbygning inspireret af Garmin/Strava, hvor træningen er sammensat af tydelige trin som Opvarmning, Løb og Nedkøling.
 
 Applikationen er bygget i ren HTML, CSS og JavaScript uden backend eller frameworks.
 Link til side: **https://allangraver.github.io/Training-Plan-Editor/**
