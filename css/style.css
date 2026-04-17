@@ -716,3 +716,48 @@ body.dark-mode .week-button.active {
   color: #fff !important;
   position: relative;
 }
+/* UGEKNAPPER: mørkegrå navigation */
+#weekButtons .week-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #2b2f36;
+  border: 1px solid #3b414a;
+  color: #f3f4f6;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+#weekButtons .week-btn:hover {
+  background: #343a43;
+  border-color: #4b5563;
+  color: #fff;
+}
+
+/* VALGT UGE: orange ramme */
+#weekButtons .week-btn.selected {
+  background: #3a404a;
+  border: 2px solid #fc4c02;  /* ✅ Strava orange ramme */
+  color: #fff;
+}
+
+/* TILFØJ UGE: behold Strava-orange action-stil */
+#weekButtons .add-week-btn {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fc4c02;
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+#weekButtons .add-week-btn:hover {
+  background: #e04402;
+  transform: translateY(-1px);
+}
