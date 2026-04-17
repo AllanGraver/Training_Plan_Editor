@@ -761,3 +761,55 @@ body.dark-mode .week-button.active {
   background: #e04402;
   transform: translateY(-1px);
 }
+/* ===== Træningsmål panel ===== */
+.goals-panel {
+  margin: 8px 0 14px;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.goal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.goal-row:last-child {
+  margin-bottom: 0;
+}
+
+.goal-label {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.goal-input {
+  margin-left: auto;
+  width: 145px;
+  padding: 6px 8px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* Dark mode: gør panelet mørkere, men behold læsbarhed */
+body.dark-mode .goals-panel {
+  background: #1a1a1a;
+  border-color: #333;
+}
+
+body.dark-mode .goal-label {
+  color: #fff;
+}
+
+body.dark-mode .goal-input {
+  background: #222;
+  color: #fff;
+  border-color: #555;
+}
