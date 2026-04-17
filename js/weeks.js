@@ -27,7 +27,11 @@ function renderWeeks() {
   container.innerHTML = "";
 
   const maxWeek = getMaxWeekInPlan();
-
+   
+  // Wrapper til ugeknapper (så "Tilføj uge" kan ligge under)
+  const weekRow = document.createElement("div");
+  weekRow.className = "week-row";
+  container.appendChild(weekRow);
 
   // Uge-knapper
   for (let w = 1; w <= maxWeek; w++) {
@@ -35,18 +39,22 @@ function renderWeeks() {
     btn.className = "week-btn";
     btn.textContent = `Uge ${w}`;
 
-    if (w === selectedWeek) {
-      btn.classList.add("selected");
-    }
+    if (w === selectedWeek) btn.classList.add("selected");
 
     btn.onclick = () => selectWeek(w);
     container.appendChild(btn);
   }
 
+   
+  // Luft (spacer)
+  const spacer = document.createElement("div");
+  spacer.className = "week-spacer";
+  container.appendChild(spacer);
+
   // ✅ Tilføj uge-knap (sidst)
   const addBtn = document.createElement("button");
   addBtn.className = "week-btn add-week-btn";
-  addBtn.textContent = "+ Tilføj uge";
+  addBtn.textContent = "+ Tilføj træningsuge";
   addBtn.onclick = (e) => {
     e.stopPropagation();
     addWeek();
