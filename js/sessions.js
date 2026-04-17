@@ -156,7 +156,7 @@ function addIntervalToSession(sessionIndex) {
       intensity: "I",
       notes: "Hurtigt",
       blockId,
-      blockReps: 2 // ✅ default 2 gange
+      blockReps: 2, // ✅ default 2 gange
       blockAnchor: true,      // ✅ nyt
       blockRole: "work"       // ✅ nyt
     },
@@ -169,7 +169,7 @@ function addIntervalToSession(sessionIndex) {
       intensity: "E",
       notes: "Roligt",
       blockId,
-      blockReps: 2 // ✅ default 2 gange
+      blockReps: 2, // ✅ default 2 gange
       blockAnchor: true,      // ✅ nyt
       blockRole: "recovery"   // ✅ ny
     }
