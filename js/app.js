@@ -76,9 +76,7 @@ function initThemeToggle() {
    ============================ */
 
 function setDurationWeeks(newCount) {
-  ensurePlanDefaults();
-
-  const count = clamp(Number(newCount) || 12, 1, 36);
+  const count = Math.max(1, Math.min(36, Number(newCount) || 12));
   plan.duration_weeks = count;
 
   // clamp selectedWeek ind i range
