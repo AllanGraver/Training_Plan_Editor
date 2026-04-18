@@ -813,3 +813,44 @@ body.dark-mode .goal-input {
   color: #fff;
   border-color: #555;
 }
+/* =========================================
+   UGER (Strava navigation): mørkegrå + orange ramme på valgt
+   ========================================= */
+
+#weekButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.week-item-row {
+  display: flex;
+}
+
+.week-item {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #2b2f36;      /* mørkegrå */
+  border: 1px solid #3b414a;
+  color: #f3f4f6;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s;
+  user-select: none;
+}
+
+.week-item:hover {
+  background: #343a43;      /* stadig grå */
+  border-color: #4b5563;
+  color: #fff;
+}
+
+.week-item.selected {
+  background: #3a404a;
+  border: 2px solid #fc4c02; /* ✅ Strava orange ramme */
+  color: #fff;
+}
