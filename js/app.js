@@ -108,9 +108,14 @@ function initGoalsPanel() {
     weeksSelect.appendChild(opt);
   }
 
-  // Default/value = plan.duration_weeks (default 12)
+  // Default 12 hvis ikke sat
+  if (!plan.duration_weeks || Number(plan.duration_weeks) < 1) {
+    plan.duration_weeks = 12;
+  }
+  
+  // Sæt dropdown til planens værdi
   weeksSelect.value = String(plan.duration_weeks);
-
+  }
   // Race date (valgfrit)
   if (dateInput) {
     dateInput.value = plan.race_date || "";
