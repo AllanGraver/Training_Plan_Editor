@@ -26,41 +26,32 @@ function renderWeeks() {
 
   container.innerHTML = "";
 
-  const maxWeek = getMaxWeekInPlan();
-   
-  // Wrapper til ugeknapper (så "Tilføj uge" kan ligge under)
-  const weekRow = document.createElement("div");
-  weekRow.className = "week-row";
-  container.appendChild(weekRow);
+  const maxWeek = Number(plan.duration_weeks || 12);
 
-  // Uge-knapper
   for (let w = 1; w <= maxWeek; w++) {
-    const btn = document.createElement("button");
-    btn.className = "week-btn";
-    btn.textContent = `Træningsuge ${w}`;
+    const row = document.createElement("div");
+    row.className = "week-item-row";
 
-    if (w === selectedWeek) btn.classList.add("selected");
+    const item = document.createElement("div");
+    item.className = "week-item";
+    item.textContent = `Træningsuge ${w}`;
+    if (w === selectedWeek) item.classList.add("selected");
 
-    btn.onclick = () => selectWeek(w);
-    container.appendChild(btn);
+    item.onclick = () => selectWeek(w);
+
+    // (Valgfrit) skraldespand-ikon pr uge, hvis du har deleteWeek(w)
+    const del = document.createElement("span");
+    del.className = "delete-week";
+    del.innerHTML = `🗑️`;
+    del.onclick = (e) => {
+      e.stopPropagation();
+      if (typeof deleteWeek === "function") deleteWeek(w);
+    };
+
+    row.appendChild(item);
+    row.appendChild(del);
+    container.appendChild(row);
   }
-
-   
-  // Luft (spacer)
-  const spacer = document.createElement("div");
-  spacer.style.height = "10px";
-  container.appendChild(spacer);
-
-  // ✅ Tilføj uge-knap (sidst)
-  const addBtn = document.createElement("button");
-  addBtn.className = "add-week-btn";
-  addBtn.textContent = "+ Tilføj træningsuge";
-  addBtn.onclick = (e) => {
-    e.stopPropagation();
-    addWeek();
-  };
-
-  container.appendChild(addBtn);
 }
 
 /* ============================
