@@ -390,7 +390,7 @@ textarea:focus {
   font-family: monospace;
   font-size: 12px;
   border: 2px solid #fff;
-  box-shadow: 0 0 0 1px rgba(0,0,0);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.12);
 }
 
 /* =====================================================
@@ -700,7 +700,7 @@ body.dark-mode .delete-plan:hover {
   bottom: 8px;
   width: 4px;
   border-radius: 10px;
-  display:
+  display: none;
 }
 
 /* Sørg for at gamle dark-mode week-button regler ikke påvirker */
