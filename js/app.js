@@ -3,13 +3,15 @@
    FILE: app.js
    PURPOSE:
    - Global state (plan, selectedWeek, selectedSessionIndex)
-   - Tema (dark/light) og initApp()
-   - Fælles helpers: getSessionsForWeek, getCurrentSession
+   - Tema (dark/light) + localStorage
+   - Init goals panel (race date + duration weeks)
+   - Init app (load library, render UI)
    ========================================================= */
 
 let plan = {
   plan_name: "Ny plan",
-  duration_weeks: 12,
+  duration_weeks: 12,     // ✅ default 12
+  race_date: null,        // ✅ gemmes som "yyyy-mm-dd"
   race_distance_km: null,
   sessions: []
 };
@@ -18,19 +20,116 @@ let selectedWeek = 1;
 let selectedSessionIndex = null;
 
 /* ============================
-   TEMA (DARK / LIGHT MODE)
+   SMALL HELPERS
    ============================ */
 
-function applyTheme() {
-  const isDark = document.body.classList.contains("dark-mode");
-  const btn = document.getElementById("themeToggle");
-  if (btn) {
-    btn.textContent = isDark ? "Light mode" : "Dark mode";
-  }
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function ensurePlanDefaults() {
+  // Sikr at plan altid har forventede felter
+  plan.plan_name = plan.plan_name || "Ny plan";
+
+  const dw = Number(plan.duration_weeks);
+  plan.duration_weeks = clamp(dw || 12, 1, 36); // ✅ 1..36, default 12
+
+  if (!Array.isArray(plan.sessions)) plan.sessions = [];
+  if (typeof plan.race_date === "undefined") plan.race_date = null;
+
+  selectedWeek = clamp(Number(selectedWeek) || 1, 1, plan.duration_weeks);
+  if (selectedSessionIndex === undefined) selectedSessionIndex = null;
 }
 
 /* ============================
-   HELPERS TIL SESSIONS
+   THEME (DARK / LIGHT)
+   ============================ */
+
+function applyThemeLabel() {
+  const isDark = document.body.classList.contains("dark-mode");
+  const btn = document.getElementById("themeToggle");
+  if (btn) btn.textContent = isDark ? "Light mode" : "Dark mode";
+}
+
+function initThemeToggle() {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+
+  // gendan theme
+  const saved = localStorage.getItem("tp_theme");
+  if (saved === "dark") document.body.classList.add("dark-mode");
+
+  applyThemeLabel();
+
+  btn.addEventListener("click", () => {
+    document.body.classList.toggle("dark-mode");
+    localStorage.setItem(
+      "tp_theme",
+      document.body.classList.contains("dark-mode") ? "dark" : "light"
+    );
+    applyThemeLabel();
+  });
+}
+
+/* ============================
+   GOALS PANEL (race date + weeks)
+   ============================ */
+
+function setDurationWeeks(newCount) {
+  ensurePlanDefaults();
+
+  const count = clamp(Number(newCount) || 12, 1, 36);
+  plan.duration_weeks = count;
+
+  // clamp selectedWeek ind i range
+  if (selectedWeek > count) selectedWeek = count;
+
+  // ✅ SLET sessions der ligger udenfor range (som du bad om: oprette/slette uger)
+  plan.sessions = plan.sessions.filter(s => (s.week || 1) <= count);
+
+  selectedSessionIndex = null;
+
+  if (typeof renderWeeks === "function") renderWeeks();
+  if (typeof renderMain === "function") renderMain();
+  if (typeof renderEditor === "function") renderEditor();
+}
+
+function initGoalsPanel() {
+  ensurePlanDefaults();
+
+  const dateInput = document.getElementById("raceDateInput");
+  const weeksSelect = document.getElementById("weeksCountSelect");
+  if (!weeksSelect) return;
+
+  // Fyld dropdown 1..36
+  weeksSelect.innerHTML = "";
+  for (let i = 1; i <= 36; i++) {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = String(i);
+    weeksSelect.appendChild(opt);
+  }
+
+  // Default/value = plan.duration_weeks (default 12)
+  weeksSelect.value = String(plan.duration_weeks);
+
+  // Race date (valgfrit)
+  if (dateInput) {
+    dateInput.value = plan.race_date || "";
+    dateInput.addEventListener("change", () => {
+      plan.race_date = dateInput.value || null;
+      if (typeof renderWeeks === "function") renderWeeks(); // senere kan vi regenere labels
+    });
+  }
+
+  // Når antal uger ændres: opret/slet automatisk
+  weeksSelect.addEventListener("change", () => {
+    setDurationWeeks(weeksSelect.value);
+  });
+}
+
+/* ============================
+   HELPERS TIL SESSIONS (bruges stadig af andre filer)
    ============================ */
 
 function getSessionsForWeek(week) {
@@ -54,22 +153,20 @@ function getCurrentSession() {
    ============================ */
 
 function initApp() {
-  // Tema-knap
-  const themeBtn = document.getElementById("themeToggle");
-  if (themeBtn) {
-    themeBtn.onclick = () => {
-      document.body.classList.toggle("dark-mode");
-      applyTheme();
-    };
-    applyTheme();
-  }
+  ensurePlanDefaults();
 
-  // Hvis der findes planer i library → load første
-  const lib = loadLibrary();
-  const names = Object.keys(lib);
+  // Theme
+  initThemeToggle();
 
-  if (names.length > 0) {
-    plan = JSON.parse(JSON.stringify(lib[names[0]]));
+  // Library load: vælg første plan hvis findes
+  if (typeof loadLibrary === "function") {
+    const lib = loadLibrary();
+    const names = Object.keys(lib);
+
+    if (names.length > 0) {
+      plan = JSON.parse(JSON.stringify(lib[names[0]]));
+      ensurePlanDefaults();
+    }
   }
 
   // Sikr steps-array
@@ -77,14 +174,18 @@ function initApp() {
     if (!Array.isArray(s.steps)) s.steps = [];
   });
 
-  // Hvis planen er tom → ingen sessions endnu
-  selectedWeek = 1;
+  // Default selection
+  selectedWeek = clamp(selectedWeek, 1, plan.duration_weeks);
   selectedSessionIndex = null;
 
-  renderLibrary();
-  renderWeeks();
-  renderMain();
-  renderEditor();
+  // Init goals panel (fylder dropdown + binder events)
+  initGoalsPanel();
+
+  // Render UI
+  if (typeof renderLibrary === "function") renderLibrary();
+  if (typeof renderWeeks === "function") renderWeeks();
+  if (typeof renderMain === "function") renderMain();
+  if (typeof renderEditor === "function") renderEditor();
 }
 
 /* ============================
@@ -94,98 +195,6 @@ function initApp() {
 window.initApp = initApp;
 window.getSessionsForWeek = getSessionsForWeek;
 window.getCurrentSession = getCurrentSession;
+window.setDurationWeeks = setDurationWeeks; // hvis du vil bruge den andre steder
 
-
-window.addEventListener("DOMContentLoaded", () => {
-  if (window.renderLibrary) renderLibrary();
-  if (window.renderWeeks) renderWeeks();
-  if (window.renderMain) renderMain();
-  if (window.renderEditor) renderEditor();
-});
-
-
-window.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("themeToggle");
-  if (!btn) return;
-
-  // Gendan theme fra localStorage (valgfrit men lækkert)
-  const saved = localStorage.getItem("tp_theme");
-  if (saved === "dark") document.body.classList.add("dark-mode");
-
-  btn.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-    localStorage.setItem("tp_theme",
-      document.body.classList.contains("dark-mode") ? "dark" : "light"
-    );
-  });
-});
-
-function initGoalsPanel() {
-  ensurePlanDefaults();
-   
-  const dateInput = document.getElementById("raceDateInput");
-  const weeksSelect = document.getElementById("weeksCountSelect");
-  if (!weeksSelect) return;
-
-  // Sørg for plan findes
-  window.plan = window.plan || {
-    plan_name: "Ny plan",
-    duration_weeks: 1,
-    race_distance_km: null,
-    sessions: []
-  };
-
-  // 1) Fyld dropdown med antal uger (1..36)
-  weeksSelect.innerHTML = "";
-  for (let i = 1; i <= 36; i++) {
-    const opt = document.createElement("option");
-    opt.value = String(i);
-    opt.textContent = String(i);
-    weeksSelect.appendChild(opt);
-  }
-
-  // ✅ Default = 12 (hvis plan.duration_weeks ikke er sat)
-  const currentWeeks = Number(plan.duration_weeks);
-  const defaultWeeks = (currentWeeks && currentWeeks >= 1) ? currentWeeks : 12;
-  
-  
-  // clamp så vi aldrig står udenfor 1..36
-  const safeWeeks = clamp(defaultWeeks, 1, 36);
-  plan.duration_weeks = safeWeeks;
-  weeksSelect.value = String(currentWeeks);
-
-  // 3) Sæt konkurrencedato hvis den findes (vi gemmer som ISO: yyyy-mm-dd)
-  if (dateinput) {
-    dateInput.value = plan.race_date || "";
-    dateInput.addEventListener("change", () => {
-      plan.race_date = dateInput.value || null;
-      if (typeof renderWeeks === "function") renderWeeks();
-    });
-  }
-
-// ✅ Når antal uger ændres: opret/slet automatisk (via setDurationWeeks)
-  weeksSelect.addEventListener("change", () => {
-    setDurationWeeks(weeksSelect.value);
-  });
-}
-
-
-  // 4) Event handlers
-  dateInput.addEventListener("change", () => {
-    plan.race_date = dateInput.value || null; // "yyyy-mm-dd" eller null
-    // her kan vi senere regenere uge-labels ud fra race_date
-    if (typeof renderWeeks === "function") renderWeeks();
-  });
-
-  weeksSelect.addEventListener("change", () => {
-    plan.duration_weeks = Number(weeksSelect.value) || 1;
-
-    // hvis du vil: autogenerér uger (se note nedenfor)
-    if (typeof renderWeeks === "function") renderWeeks();
-  });
-}
-
-// Kør ved load
-window.addEventListener("DOMContentLoaded", () => {
-  initGoalsPanel();
-});
+window.addEventListener("DOMContentLoaded", initApp);
