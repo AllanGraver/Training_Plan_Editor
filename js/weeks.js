@@ -26,6 +26,7 @@ function renderWeeks() {
 
   container.innerHTML = "";
 
+  // Ugerne skal følge dropdown -> plan.duration_weeks
   const maxWeek = Number(plan.duration_weeks || 12);
 
   for (let w = 1; w <= maxWeek; w++) {
@@ -37,7 +38,7 @@ function renderWeeks() {
 
     btn.onclick = () => selectWeek(w);
 
-    container.appendChild(row);
+    container.appendChild(btn);
   }
 }
 
