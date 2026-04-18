@@ -39,15 +39,6 @@ function renderWeeks() {
 
     item.onclick = () => selectWeek(w);
 
-    // (Valgfrit) skraldespand-ikon pr uge, hvis du har deleteWeek(w)
-    const del = document.createElement("span");
-    del.className = "delete-week";
-    del.innerHTML = `🗑️`;
-    del.onclick = (e) => {
-      e.stopPropagation();
-      if (typeof deleteWeek === "function") deleteWeek(w);
-    };
-
     row.appendChild(item);
     row.appendChild(del);
     container.appendChild(row);
