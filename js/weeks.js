@@ -29,18 +29,14 @@ function renderWeeks() {
   const maxWeek = Number(plan.duration_weeks || 12);
 
   for (let w = 1; w <= maxWeek; w++) {
-    const row = document.createElement("div");
-    row.className = "week-item-row";
+    const btn = document.createElement("button");
+    btn.className = "week-btn";
+    btn.textContent = `Træningsuge ${w}`;
 
-    const item = document.createElement("div");
-    item.className = "week-item";
-    item.textContent = `Træningsuge ${w}`;
-    if (w === selectedWeek) item.classList.add("selected");
+    if (w === selectedWeek) btn.classList.add("selected");
 
-    item.onclick = () => selectWeek(w);
+    btn.onclick = () => selectWeek(w);
 
-    row.appendChild(item);
-    row.appendChild(del);
     container.appendChild(row);
   }
 }
